@@ -1,0 +1,53 @@
+#
+# SoC audio configuration
+#
+
+config SND_SOC_DBMDX
+	tristate "DSPG Voice Trigger/Enhancement Chip"
+	default m
+	help
+		DSPG Voice Trigger/Enhancement Chip
+
+config SND_SOC_DBMDX_USE_ANALOG_MICS
+	bool "Microphones type is Analog"
+	depends on SND_SOC_DBMDX
+	default n
+	help
+		Set if Microphones type is Analog
+
+config SND_SOC_DBMDX_SAR_ADC_SELECT_MIC2
+	bool "Select SAR ADC MiC 2"
+	depends on SND_SOC_DBMDX
+	default n
+	help
+		Set if SAR ADC Mic2 should be used
+
+config SND_SOC_DBMDX_SND_CAPTURE
+	bool "DSPG Capture Device Support"
+	depends on SND_SOC_DBMDX
+	default n
+	help
+		Register DBMDX SOC as a separate sound card.
+		.
+		y - Register DBMDX SOC as separate sound card
+		n - Do not register DBMDX SOC as separate sound card
+
+config SND_SOC_DBMDX_ALEXA_WWE_SUPPORT
+	bool "Wake Word Detection Engine Is Alexa"
+	depends on SND_SOC_DBMDX
+	default n
+	help
+		Wake Word Detection Engine Is Alexa
+
+config SND_SOC_DBMDX_GENERAL_WWE_SUPPORT
+	bool "Wake Word Detection Engine Is General"
+	depends on SND_SOC_DBMDX
+	default n
+	help
+		Wake Word Detection Engine Is General
+
+config AMAZON_DSP_FRAMEWORK
+	tristate "adf support"
+	default n
+	help
+		support adf;

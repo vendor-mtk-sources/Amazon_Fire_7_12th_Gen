@@ -1,0 +1,16 @@
+menu "Amazon dsp framework driver"
+
+config AMAZON_DSP_FRAMEWORK
+	tristate "adf support"
+	default n
+	help
+		support adf;
+
+config AMAZON_DSP_FRAMEWORK_CHAR_LEN
+	int "dsp char bit length"
+	default 1
+	help
+		dsp char bit length;
+
+endmenu
+

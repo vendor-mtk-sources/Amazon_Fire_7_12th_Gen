@@ -1,0 +1,13 @@
+#
+# USB Miscellaneous driver configuration
+#
+comment "USB Miscellaneous drivers"
+
+
+config WUSB3801
+	bool "IGC WUSB3801X Configuration Channel Controller for USB Type-C"
+	depends on USB || I2C
+	default n
+	help
+	  Enable this to support WUSB3801X CC Controller for USB Type C.
+

@@ -1,0 +1,15 @@
+config SYNC_DISP_PWM_OFF
+	bool "enable SYNC_DISP_PWM_OFF"
+	default n
+	help
+	  define CONFIG_SYNC_DISP_PWM_OFF to set brightness to 0 before suspend
+	  This feature only for disp pwm backlight
+	  If unsure, set N.
+
+config SKIP_BRIGHTNESS_AFTER_PWM_CLOCKOFF
+	bool "enable SKIP_BRIGHTNESS_AFTER_PWM_CLOCKOFF"
+	default n
+	help
+	  define SKIP_BRIGHTNESS_AFTER_PWM_CLOCKOFF to set skip set brightness after power_off
+	  This feature only for disp pwm backlight
+	  If unsure, set N.

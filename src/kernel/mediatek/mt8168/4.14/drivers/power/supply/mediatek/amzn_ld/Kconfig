@@ -1,0 +1,5 @@
+config AMZN_LD
+	tristate "AMZN_LD driver"
+	default n
+	help
+	  Say Y here to enable support for type-c CC and SBU protection
