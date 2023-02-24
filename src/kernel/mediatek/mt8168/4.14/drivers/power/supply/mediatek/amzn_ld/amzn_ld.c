@@ -31,23 +31,10 @@
 #include "amzn_ld.h"
 #include <mtk_charger_intf.h>
 #include <linux/regulator/consumer.h>
-#ifdef CONFIG_AMZN_METRICS_LOG
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
 #include <linux/amzn_metricslog.h>
-#endif
-
-/* For metrics */
-#ifdef CONFIG_AMZN_METRICS_LOG
-#define BATTERY_METRICS_BUFF_SIZE_LIQUID              512
-static char g_m_buf_liquid[BATTERY_METRICS_BUFF_SIZE_LIQUID];
-
-#define liquid_metrics_log(domain, fmt, ...) \
-do { \
-	memset(g_m_buf_liquid, 0, BATTERY_METRICS_BUFF_SIZE_LIQUID); \
-	snprintf(g_m_buf_liquid, sizeof(g_m_buf_liquid), fmt, ##__VA_ARGS__); \
-	log_to_metrics(ANDROID_LOG_INFO, domain, g_m_buf_liquid); \
-} while (0)
-#else
-static inline void liquid_metrics_log(void) {}
+#define METRICS_BUFF_SIZE_LIQUID 512
+static char g_m_buf_liquid[METRICS_BUFF_SIZE_LIQUID];
 #endif
 
 static struct liquid *g_liquid;
@@ -225,9 +212,22 @@ static void liquid_report_event(struct liquid *liquid, int event)
 			duration_sec = 0;
 		else
 			duration_sec = now_ts.tv_sec - liquid->event_ts.tv_sec;
-		liquid_metrics_log("Liquid_Detection", "Liquid_Detection:\
-			def:current_state=%d;CT;1,previous_state=%d;CT;1,\
-			duration_sec=%d;CT;1:NR", event, pre_event, duration_sec);
+#ifdef CONFIG_AMZN_METRICS_LOG
+		memset(g_m_buf_liquid, 0, METRICS_BUFF_SIZE_LIQUID);
+		snprintf(g_m_buf_liquid, sizeof(g_m_buf_liquid),
+				"Liquid_Detection:def:current_state=%d;CT;1,"
+				"previous_state=%d;CT;1,duration_sec=%d;CT;1:NR",
+				event, pre_event, duration_sec);
+		log_to_metrics(ANDROID_LOG_INFO, "Liquid_Detection", g_m_buf_liquid);
+#endif
+
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+		minerva_metrics_log(g_m_buf_liquid, METRICS_BUFF_SIZE_LIQUID,
+				"%s:%s:100:%s,%s,%s,ld_current_state=%d;IN,"
+				"ld_previous_state=%d;IN,ld_duration_sec=%d;IN:us-east-1",
+				METRICS_LD_GROUP_ID, METRICS_LD_SCHEMA_ID, PREDEFINED_ESSENTIAL_KEY,
+				PREDEFINED_MODEL_KEY, PREDEFINED_TZ_KEY, event, pre_event, duration_sec);
+#endif
 		memcpy(&liquid->event_ts, &now_ts, sizeof(struct timespec));
 	} else {
 		if (event == TYPE_DRY)

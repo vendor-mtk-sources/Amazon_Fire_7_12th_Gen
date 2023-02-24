@@ -157,7 +157,8 @@ struct battery_thermal_protection_data {
 struct charger_custom_data {
 	int battery_cv;	/* uv */
 #ifdef CONFIG_MTK_USE_AGING_ZCV
-	int battery_cv_aging;	/* uv */
+	int battery_cv_aging1;	/* uv */
+	int battery_cv_aging2;	/* uv */
 #endif
 	int max_charger_voltage;
 	int max_charger_voltage_setting;
@@ -190,12 +191,19 @@ struct charger_custom_data {
 	int jeita_temp_t0_to_t1_cv;
 	int jeita_temp_below_t0_cv;
 #ifdef CONFIG_MTK_USE_AGING_ZCV
-	int jeita_temp_above_t4_cv_voltage_aging;
-	int jeita_temp_t3_to_t4_cv_voltage_aging;
-	int jeita_temp_t2_to_t3_cv_voltage_aging;
-	int jeita_temp_t1_to_t2_cv_voltage_aging;
-	int jeita_temp_t0_to_t1_cv_voltage_aging;
-	int jeita_temp_below_t0_cv_voltage_aging;
+	int jeita_temp_above_t4_cv_voltage_aging1;
+	int jeita_temp_t3_to_t4_cv_voltage_aging1;
+	int jeita_temp_t2_to_t3_cv_voltage_aging1;
+	int jeita_temp_t1_to_t2_cv_voltage_aging1;
+	int jeita_temp_t0_to_t1_cv_voltage_aging1;
+	int jeita_temp_below_t0_cv_voltage_aging1;
+
+	int jeita_temp_above_t4_cv_voltage_aging2;
+	int jeita_temp_t3_to_t4_cv_voltage_aging2;
+	int jeita_temp_t2_to_t3_cv_voltage_aging2;
+	int jeita_temp_t1_to_t2_cv_voltage_aging2;
+	int jeita_temp_t0_to_t1_cv_voltage_aging2;
+	int jeita_temp_below_t0_cv_voltage_aging2;
 #endif
 	int temp_t4_thres;
 	int temp_t4_thres_minus_x_degree;
@@ -417,7 +425,8 @@ struct charger_manager {
 	int custom_charging_cv;
 	int top_off_mode_cv;
 #ifdef CONFIG_MTK_USE_AGING_ZCV
-	int top_off_mode_cv_aging;
+	int top_off_mode_cv_aging1;
+	int top_off_mode_cv_aging2;
 #endif
 	unsigned int top_off_mode_enable; /* 0=ratail unit, 1=demo unit */
 	/* ATM */
@@ -469,6 +478,7 @@ extern bool is_dual_charger_supported(struct charger_manager *info);
 extern int charger_enable_vbus_ovp(struct charger_manager *pinfo, bool enable);
 extern bool is_typec_adapter(struct charger_manager *info);
 extern bool is_charger_invalid(void);
+extern int mtk_get_battery_cv(struct charger_manager *info);
 
 /* pmic API */
 extern unsigned int upmu_get_rgs_chrdet(void);

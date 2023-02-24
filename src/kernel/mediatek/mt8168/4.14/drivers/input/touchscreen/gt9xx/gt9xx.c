@@ -23,8 +23,9 @@
 #include <linux/pinctrl/consumer.h>
 #include <linux/input/mt.h>
 #include "gt9xx.h"
-#ifdef CONFIG_AMAZON_METRICS_LOG
-#include <linux/metricslog.h>
+
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+#include <linux/amzn_metricslog.h>
 #endif
 
 #define GOODIX_COORDS_ARR_SIZE	4
@@ -2615,8 +2616,8 @@ static void gtp_esd_check_func(struct work_struct *work)
 {
 	s32 i;
 	s32 ret = -1;
-#ifdef CONFIG_AMAZON_METRICS_LOG
-	char buf[128];
+#if defined(CONFIG_AMZN_METRICS_LOG) || (CONFIG_AMZN_MINERVA_METRICS_LOG)
+	char buf[320];
 #endif
 	u8 esd_buf[5] = { (u8)(GTP_REG_COMMAND >> 8), (u8)GTP_REG_COMMAND };
 	struct delayed_work *dwork = to_delayed_work(work);
@@ -2679,7 +2680,13 @@ static void gtp_esd_check_func(struct work_struct *work)
 		gtp_reset_guitar(ts->client, 50);
 		msleep(GTP_50_DLY_MS);
 		gtp_send_cfg(ts->client);
-#ifdef CONFIG_AMAZON_METRICS_LOG
+#if defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+		minerva_metrics_log(buf, 320, "%s:%s:100:%s,%s,%s,%s,"
+			"lcm_state=None;SY,ESD_Recovery=1;IN:us-east-1",
+			METRICS_LCD_GROUP_ID, METRICS_LCD_SCHEMA_ID,
+			PREDEFINED_ESSENTIAL_KEY, PREDEFINED_MODEL_KEY,
+			PREDEFINED_TZ_KEY, PREDEFINED_DEVICE_LANGUAGE_KEY);
+#elif defined(CONFIG_AMZN_METRICS_LOG)
 		snprintf(buf, sizeof(buf),
 			"touch:gt9xx:ESD_recovery=1;CT;1:NR");
 		log_to_metrics(ANDROID_LOG_INFO, "TouchEvent", buf);

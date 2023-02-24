@@ -14,7 +14,7 @@
 #include "mediatek/mt8168_dtbo.dts"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/phy/phy.h>
-#include "mediatek/d4-spi-aca123.dtsi"
+#include "mediatek/d4-spi-melon.dtsi"
 #define ROOT_NODE &odm
 
 / {
@@ -1872,24 +1872,41 @@ ROOT_NODE {
 	Q_MAX_H_CURRENT_T3 = <3650 3600>;
 	Q_MAX_H_CURRENT_T4 = <3450 3100>;
 
-	Q_MAX_2_T0 = <3150 3300>;
-	Q_MAX_2_T1 = <3200 3300>;
-	Q_MAX_2_T2 = <3150 3200>;
-	Q_MAX_2_T3 = <3050 3050>;
-	Q_MAX_2_T4 = <3000 2950>;
-
-	Q_MAX_H_CURRENT_2_T0 = <3150 3300>;
-	Q_MAX_H_CURRENT_2_T1 = <3200 3300>;
-	Q_MAX_H_CURRENT_2_T2 = <3150 3200>;
-	Q_MAX_H_CURRENT_2_T3 = <3050 3050>;
-	Q_MAX_H_CURRENT_2_T4 = <3000 2950>;
-
 	#include "mediatek/bat_setting/quartz_battery_table_ext_ATL.dtsi"
 	#include "mediatek/bat_setting/quartz_battery_table_ext_LISHEN.dtsi"
+
 #ifdef CONFIG_MTK_USE_AGING_ZCV
+	Q_MAX_1_T0 = <3150 3300>;
+	Q_MAX_1_T1 = <3200 3300>;
+	Q_MAX_1_T2 = <3150 3200>;
+	Q_MAX_1_T3 = <3050 3050>;
+	Q_MAX_1_T4 = <3000 2950>;
+
+	Q_MAX_H_CURRENT_1_T0 = <3150 3300>;
+	Q_MAX_H_CURRENT_1_T1 = <3200 3300>;
+	Q_MAX_H_CURRENT_1_T2 = <3150 3200>;
+	Q_MAX_H_CURRENT_1_T3 = <3050 3050>;
+	Q_MAX_H_CURRENT_1_T4 = <3000 2950>;
+
 	#include "mediatek/bat_setting/quartz_battery_table_ext_4p2v_ATL.dtsi"
 	#include "mediatek/bat_setting/quartz_battery_table_ext_4p2v_LISHEN.dtsi"
+
+	Q_MAX_2_T0 = <2289 2289>;
+	Q_MAX_2_T1 = <2303 2303>;
+	Q_MAX_2_T2 = <2306 2306>;
+	Q_MAX_2_T3 = <2305 2305>;
+	Q_MAX_2_T4 = <2312 2312>;
+
+	Q_MAX_H_CURRENT_2_T0 = <2289 2289>;
+	Q_MAX_H_CURRENT_2_T1 = <2303 2303>;
+	Q_MAX_H_CURRENT_2_T2 = <2306 2306>;
+	Q_MAX_H_CURRENT_2_T3 = <2305 2305>;
+	Q_MAX_H_CURRENT_2_T4 = <2312 2312>;
+
+	#include "mediatek/bat_setting/quartz_battery_table_ext_4v_ATL.dtsi"
+	#include "mediatek/bat_setting/quartz_battery_table_ext_4v_LISHEN.dtsi"
 #endif
+
 	idme_battery_names = "Desay/ATL","Desay/LiShen";
 	idme_battery_id = <0x1331 0x1337>;
 };
@@ -1923,7 +1940,6 @@ ROOT_NODE {
 	/delete-property/ enable_type_c;
 	/* common */
 	battery_cv = <4400000>;
-	battery_cv_aging = <4208000>;
 	min_charger_voltage = <4300000>;
 
 	/* charging current */
@@ -1948,13 +1964,28 @@ ROOT_NODE {
 	jeita_temp_t1_to_t2_cv = <4400000>;
 	jeita_temp_t0_to_t1_cv = <4400000>;
 	jeita_temp_below_t0_cv = <4400000>;
-	/* SW JEITAfor aging battery */
-	jeita_temp_above_t4_cv_voltage_aging = <4100000>;
-	jeita_temp_t3_to_t4_cv_voltage_aging = <4100000>;
-	jeita_temp_t2_to_t3_cv_voltage_aging = <4208000>;
-	jeita_temp_t1_to_t2_cv_voltage_aging = <4208000>;
-	jeita_temp_t0_to_t1_cv_voltage_aging = <4208000>;
-	jeita_temp_below_t0_cv_voltage_aging = <4208000>;
+
+	/* Settings for aging battery */
+#ifdef CONFIG_MTK_USE_AGING_ZCV
+	battery_cv_aging1 = <4208000>;
+	top_off_mode_cv_aging1 = <4100000>;
+	jeita_temp_above_t4_cv_voltage_aging1 = <4100000>;
+	jeita_temp_t3_to_t4_cv_voltage_aging1 = <4100000>;
+	jeita_temp_t2_to_t3_cv_voltage_aging1 = <4208000>;
+	jeita_temp_t1_to_t2_cv_voltage_aging1 = <4208000>;
+	jeita_temp_t0_to_t1_cv_voltage_aging1 = <4208000>;
+	jeita_temp_below_t0_cv_voltage_aging1 = <4208000>;
+
+	battery_cv_aging2 = <4016000>;
+	top_off_mode_cv_aging2 = <0>;
+	jeita_temp_above_t4_cv_voltage_aging2 = <4016000>;
+	jeita_temp_t3_to_t4_cv_voltage_aging2 = <4016000>;
+	jeita_temp_t2_to_t3_cv_voltage_aging2 = <4016000>;
+	jeita_temp_t1_to_t2_cv_voltage_aging2 = <4016000>;
+	jeita_temp_t0_to_t1_cv_voltage_aging2 = <4016000>;
+	jeita_temp_below_t0_cv_voltage_aging2 = <4016000>;
+#endif
+
 	temp_t4_thres = <55>;
 	temp_t4_thres_minus_x_degree = <52>;
 	temp_t3_thres = <45>;
@@ -1971,7 +2002,6 @@ ROOT_NODE {
 	temp_t3_to_t4_charger_current = <1875000>;
 
 	top_off_mode_cv = <4208000>; /* CV, uinit:uV */
-	top_off_mode_cv_aging = <4208000>; /* CV, uinit:uV */
 	top_off_difference_full_cv = <2500>; /* 25% */
 	normal_difference_full_cv = <500>; /* 5% */
 	thermal_throttling_by_psy;

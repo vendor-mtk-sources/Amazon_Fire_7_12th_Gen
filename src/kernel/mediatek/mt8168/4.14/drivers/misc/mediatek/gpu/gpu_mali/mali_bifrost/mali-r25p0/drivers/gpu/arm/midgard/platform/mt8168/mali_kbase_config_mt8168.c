@@ -47,7 +47,8 @@ DEFINE_MUTEX(g_mfg_lock);
 
 static void *g_MFG_base;
 static int g_curFreqID;
-static struct wakeup_source *ws;
+static int g_is_suspend;
+
 
 /**
  * For GPU idle check
@@ -69,7 +70,6 @@ static void __mtk_check_MFG_idle(void)
 	/* do not care about 0x13000174 */
 	do {
 		val = readl(g_MFG_base + 0x178);
-		mali_pr_debug("@%s: 0x13000178 val = 0x%x\n", __func__, val);
 	} while ((val & 0x4) != 0x4);
 }
 
@@ -103,8 +103,10 @@ static int pm_callback_power_on_nolock(struct kbase_device *kbdev)
 		return 0;
 
 	mali_pr_debug("@%s: power on ...\n", __func__);
-	/* hold the suspend lock*/
-	__pm_stay_awake(ws);
+	if (g_is_suspend == 1) {
+		mali_pr_info("@%s: discard powering on since GPU is suspended\n", __func__);
+		return 0;
+	}
 
 #ifdef MT_GPUFREQ_SRAM_DEBUG
 	aee_rr_rec_gpu_dvfs_status(0x1 | (aee_rr_curr_gpu_dvfs_status() & 0xF0));
@@ -212,8 +214,6 @@ static void pm_callback_power_off_nolock(struct kbase_device *kbdev)
 #ifdef MT_GPUFREQ_SRAM_DEBUG
 	aee_rr_rec_gpu_dvfs_status(0xE | (aee_rr_curr_gpu_dvfs_status() & 0xF0));
 #endif
-	/* release suspend lock */
-	__pm_relax(ws);
 }
 
 static int pm_callback_power_on(struct kbase_device *kbdev)
@@ -236,12 +236,26 @@ static void pm_callback_power_off(struct kbase_device *kbdev)
 
 void pm_callback_power_suspend(struct kbase_device *kbdev)
 {
-	/* do-nothing */
+	mutex_lock(&g_mfg_lock);
+
+	if ((mtk_get_vgpu_power_on_flag() == MTK_VGPU_POWER_ON)) {
+		pm_callback_power_off_nolock(kbdev);
+		mali_pr_info("@%s: force powering off GPU\n", __func__);
+	}
+	g_is_suspend = 1;
+	mali_pr_info("@%s: gpu_suspend\n", __func__);
+
+	mutex_unlock(&g_mfg_lock);
 }
 
 void pm_callback_power_resume(struct kbase_device *kbdev)
 {
-	/* do-nothing */
+	mutex_lock(&g_mfg_lock);
+
+	g_is_suspend = 0;
+	mali_pr_info("@%s: gpu_resume\n", __func__);
+
+	mutex_unlock(&g_mfg_lock);
 }
 
 
@@ -313,11 +327,7 @@ int mtk_platform_init(struct platform_device *pdev, struct kbase_device *kbdev)
 		return -1;
 	}
 
-	ws = wakeup_source_register(kbdev->dev, "gpu_mali_wakelock");
-	if (ws == NULL) {
-		mali_pr_info("@%s: fail to register gpu_mali_wakelock\n", __func__);
-		return -1;
-	}
+	g_is_suspend = -1;
 
 	mali_pr_info("@%s: initialize successfully\n", __func__);
 

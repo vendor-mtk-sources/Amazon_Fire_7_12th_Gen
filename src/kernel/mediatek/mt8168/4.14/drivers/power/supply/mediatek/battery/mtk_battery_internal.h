@@ -621,7 +621,8 @@ struct fuel_gauge_table_custom_data {
 	int active_table_number;
 	struct fuel_gauge_table fg_profile[MAX_TABLE];
 #ifdef CONFIG_MTK_USE_AGING_ZCV
-	struct fuel_gauge_table fg_profile_temp[MAX_TABLE];
+	struct fuel_gauge_table fg_profile_aging1[MAX_TABLE];
+	struct fuel_gauge_table fg_profile_aging2[MAX_TABLE];
 #endif
 
 	int temperature_tb0;

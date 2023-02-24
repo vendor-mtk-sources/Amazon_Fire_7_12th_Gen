@@ -158,7 +158,7 @@ static int reg_VCN18_flag;
 #endif
 #endif
 
-#if defined(CONFIG_AMAZON_METRICS_LOG) || defined(CONFIG_AMZN_METRICS_LOG)
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
 static int gHwFailCnt = 0;
 struct timeval TimeStart = {0}, TimeEnd = {0};
 #endif
@@ -583,7 +583,7 @@ static VOID consys_inc_wifi_spi_driving(VOID)
 static VOID consys_hw_reset_bit_set(MTK_WCN_BOOL enable)
 {
 	UINT32 cnt = 0;
-#if defined(CONFIG_AMAZON_METRICS_LOG) || defined(CONFIG_AMZN_METRICS_LOG)
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
 	UINT32 ret = 0;
 #endif
 
@@ -631,7 +631,7 @@ static VOID consys_hw_reset_bit_set(MTK_WCN_BOOL enable)
 			cnt++;
 		}
 
-#if defined(CONFIG_AMAZON_METRICS_LOG) || defined(CONFIG_AMZN_METRICS_LOG)
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
 		if (cnt == 11) {
 			if(gHwFailCnt == 0) {
 				gHwFailCnt = 1;
@@ -640,36 +640,26 @@ static VOID consys_hw_reset_bit_set(MTK_WCN_BOOL enable)
 				gHwFailCnt ++;
 			} else {
 				do_gettimeofday(&TimeEnd);
-				ret = minerva_log_counter_to_vitals(ANDROID_LOG_INFO, "conn-wmt-pwr-on-failure",
-					"Fail", (int)(TimeEnd.tv_sec - TimeStart.tv_sec), NULL);
+				ret = minerva_timer_to_vitals(ANDROID_LOG_INFO,
+					MINERVA_WIFI_GROUP_ID, MINERVA_WIFI_SCHEMA_ID,
+					"Kernel vitals", "wifiKDM", "conn-wmt-pwr-on-failure",
+					"Fail", (long)(TimeEnd.tv_sec - TimeStart.tv_sec), "s", VITALS_NORMAL, NULL, NULL);
 				if (ret)
 					WMT_PLAT_PR_INFO("minerva_log: fail, 500 counts, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
 				else
 					WMT_PLAT_PR_INFO("minerva_log: ok, 500 counts, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
-
-				ret = log_timer_to_vitals(ANDROID_LOG_INFO, "Kernel vitals", "wifiKDM", "conn-wmt-pwr-on-failure",
-					"Fail", (long)(TimeEnd.tv_sec - TimeStart.tv_sec), "s", VITALS_NORMAL);
-				if (ret)
-					WMT_PLAT_PR_INFO("log_timer_to_vitals: fail, 500 counts, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
-				else
-					WMT_PLAT_PR_INFO("log_timer_to_vitals: ok, 500 counts, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
 				gHwFailCnt = 0;
 			}
 		} else if ( gHwFailCnt != 0) {
 			do_gettimeofday(&TimeEnd);
-			ret = minerva_log_counter_to_vitals(ANDROID_LOG_INFO, "conn-wmt-pwr-on-failure",
-					"success", (int)(TimeEnd.tv_sec - TimeStart.tv_sec), NULL);
+			ret = minerva_timer_to_vitals(ANDROID_LOG_INFO,
+					MINERVA_WIFI_GROUP_ID, MINERVA_WIFI_SCHEMA_ID,
+					"Kernel vitals", "wifiKDM", "conn-wmt-pwr-on-failure",
+					"success", (long)(TimeEnd.tv_sec - TimeStart.tv_sec), "s", VITALS_NORMAL, NULL, NULL);
 			if (ret)
 				WMT_PLAT_PR_INFO("minerva_log: fail, recover, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
 			else
 				WMT_PLAT_PR_INFO("minerva_log: ok, recover, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
-
-			ret = log_timer_to_vitals(ANDROID_LOG_INFO, "Kernel vitals", "wifiKDM", "conn-wmt-pwr-on-failure",
-				"success", (long)(TimeEnd.tv_sec - TimeStart.tv_sec), "s", VITALS_NORMAL);
-			if (ret)
-				WMT_PLAT_PR_INFO("log_timer_to_vitals: fail, recover, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
-			else
-				WMT_PLAT_PR_INFO("log_timer_to_vitals: ok, recover, time = %d", (int)(TimeEnd.tv_sec - TimeStart.tv_sec));
 			gHwFailCnt = 0;
 		}
 #endif

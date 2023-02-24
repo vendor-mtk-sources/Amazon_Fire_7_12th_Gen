@@ -20,7 +20,7 @@
 #include <linux/list.h>
 #include <linux/workqueue.h>
 #include <linux/switch.h>
-#if defined(CONFIG_AMZN_METRICS_LOG)
+#if defined(CONFIG_AMZN_MINERVA_METRICS_LOG) || defined(CONFIG_AMZN_METRICS_LOG)
 #include <linux/amzn_metricslog.h>
 #endif
 
@@ -339,13 +339,13 @@ unsigned char dump_regs[] = {REVISION_ID, COMMON_INT, CC_INT, BC_INT,
 	 ADC_CTRL4, ADCResultAvg, ADCResultMax, ADCResultMin, VB_CTRL};
 
 /* For metrics */
-#ifdef CONFIG_AMZN_METRICS_LOG
-#define BATTERY_METRICS_BUFF_SIZE_MAX20342 512
-char g_m_buf_max20342[BATTERY_METRICS_BUFF_SIZE_MAX20342];
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+#define METRICS_BUFF_SIZE_MAX20342 512
+char g_m_buf_max20342[METRICS_BUFF_SIZE_MAX20342];
 
 #define max20342_metrics_log(domain, fmt, ...) \
 do { \
-	memset(g_m_buf_max20342, 0, BATTERY_METRICS_BUFF_SIZE_MAX20342); \
+	memset(g_m_buf_max20342, 0, METRICS_BUFF_SIZE_MAX20342); \
 	snprintf(g_m_buf_max20342, sizeof(g_m_buf_max20342), fmt, ##__VA_ARGS__); \
 	log_to_metrics(ANDROID_LOG_INFO, domain, g_m_buf_max20342); \
 } while (0)

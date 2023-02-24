@@ -178,7 +178,7 @@ static struct SENSOR_WINSIZE_INFO_STRUCT imgsensor_winsize_info[5] = {
 #if MULTI_WRITE
 #define I2C_BUFFER_LEN    510
 #else
-#define I2C_BUFFER_LEN    2
+#define I2C_BUFFER_LEN    3
 #endif
 
 static kal_uint16 sc202cs_quartz_raw_cxt_front_table_write_cmos_sensor(kal_uint16 *para, kal_uint32 len)
@@ -368,7 +368,7 @@ static kal_uint16 set_gain(kal_uint16 gain)
 
 	reg_gain = gain2reg(gain);
 
-	for (gain_index = SC202CS_QUARTZ_RAW_CXT_FRONT_SENSOR_GAIN_MAX_VALID_INDEX - 1; gain_index >= 0; gain_index--)
+	for (gain_index = SC202CS_QUARTZ_RAW_CXT_FRONT_SENSOR_GAIN_MAX_VALID_INDEX - 1; gain_index > 0; gain_index--)
 		if (reg_gain >= SC202CS_QUARTZ_RAW_CXT_FRONT_AGC_Param[gain_index][0])
 			break;
 

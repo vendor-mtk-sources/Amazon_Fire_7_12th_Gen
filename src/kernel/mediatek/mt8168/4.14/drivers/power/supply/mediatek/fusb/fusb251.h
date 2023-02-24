@@ -20,7 +20,7 @@
 #include <linux/list.h>
 #include <linux/workqueue.h>
 #include <linux/switch.h>
-#ifdef CONFIG_AMZN_METRICS_LOG
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
 #include <linux/amzn_metricslog.h>
 #endif
 
@@ -172,12 +172,12 @@ int mos_det_R_table[] = {17, 36, 56, 80, 107, 137, 172, 213,
 
 /* For metrics */
 #ifdef CONFIG_AMZN_SIGN_OF_LIFE
-#define BATTERY_METRICS_BUFF_SIZE 512
-char g_m_buf[BATTERY_METRICS_BUFF_SIZE];
+#define METRICS_BUFF_SIZE_FUSB251 512
+char g_m_buf[METRICS_BUFF_SIZE_FUSB251];
 
 #define fusb251_metrics_log(domain, fmt, ...)			\
 do {								\
-	memset(g_m_buf, 0, BATTERY_METRICS_BUFF_SIZE);		\
+	memset(g_m_buf, 0, METRICS_BUFF_SIZE_FUSB251);		\
 	snprintf(g_m_buf, sizeof(g_m_buf), fmt, ##__VA_ARGS__);	\
 	log_to_metrics(ANDROID_LOG_INFO, domain, g_m_buf);	\
 } while (0)

@@ -180,7 +180,7 @@ static int virtual_sensor_thermal_sensor_probe(struct platform_device *pdev)
 	virtual_sensor->therm_fw =
 	    kzalloc(sizeof(struct thermal_dev), GFP_KERNEL);
 	if (virtual_sensor->therm_fw) {
-		virtual_sensor->therm_fw->name = SENSOR_NAME;
+		virtual_sensor->therm_fw->name = pdev->dev.of_node->name;
 		virtual_sensor->therm_fw->dev = virtual_sensor->dev;
 		virtual_sensor->therm_fw->dev_ops = &virtual_sensor_thermal_sensor_fops;
 		virtual_sensor->therm_fw->tdp =

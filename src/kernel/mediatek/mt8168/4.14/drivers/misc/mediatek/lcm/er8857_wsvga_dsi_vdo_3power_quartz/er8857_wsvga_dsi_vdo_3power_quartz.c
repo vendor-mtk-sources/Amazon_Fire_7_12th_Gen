@@ -39,6 +39,10 @@
 #include <linux/metricslog.h>
 #endif
 
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+#include <linux/amzn_metricslog.h>
+#endif
+
 /* pcba info */
 #define ONLY_4POWER_PCBA		1
 #define ONLY_3POWER_PCBA		2
@@ -682,9 +686,16 @@ static void lcm_init(void)
 
 static void lcm_resume(void)
 {
-#ifdef CONFIG_AMAZON_METRICS_LOG
-	char buf[128];
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+	char buf[512];
+#endif
 
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+	minerva_metrics_log(buf, 512,
+		"%s:%s:100:%s,%s,%s,%s,lcm_state=lcm_resume;SY,ESD_Recovery=0;IN:us-east-1",
+		METRICS_LCD_GROUP_ID, METRICS_LCD_SCHEMA_ID, PREDEFINED_ESSENTIAL_KEY,
+		PREDEFINED_MODEL_KEY, PREDEFINED_TZ_KEY, PREDEFINED_DEVICE_LANGUAGE_KEY);
+#elif defined(CONFIG_AMZN_METRICS_LOG)
 	snprintf(buf, sizeof(buf), "%s:lcd:resume=1;CT;1:NR", __func__);
 	log_to_metrics(ANDROID_LOG_INFO, "LCDEvent", buf);
 #endif
@@ -718,11 +729,21 @@ static void lcm_resume_power(void)
 
 static void lcm_suspend(void)
 {
-#ifdef CONFIG_AMAZON_METRICS_LOG
-	char buf[128];
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+	char buf[512];
+#endif
 
+#if defined(CONFIG_AMZN_METRICS_LOG)
 	snprintf(buf, sizeof(buf), "%s:lcd:suspend=1;CT;1:NR", __func__);
 	log_to_metrics(ANDROID_LOG_INFO, "LCDEvent", buf);
+#endif
+
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+	minerva_metrics_log(buf, 512, "%s:%s:100:%s,%s,%s,%s,lcm_state=lcm_suspend;SY,"
+			"ESD_Recovery=0;IN:us-east-1",
+			METRICS_LCD_GROUP_ID, METRICS_LCD_SCHEMA_ID,
+			PREDEFINED_ESSENTIAL_KEY, PREDEFINED_MODEL_KEY,
+			PREDEFINED_TZ_KEY, PREDEFINED_DEVICE_LANGUAGE_KEY);
 #endif
 	pr_notice("[LCM][Er8857] %s enter\n", __func__);
 	push_table(lcm_suspend_setting,

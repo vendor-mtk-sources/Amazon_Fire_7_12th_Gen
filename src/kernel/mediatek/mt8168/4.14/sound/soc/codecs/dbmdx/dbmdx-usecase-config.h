@@ -13,15 +13,15 @@
 
 #include "dbmdx-usecase-config-def.h"
 
-#ifdef DBMDX_aca123_USECASES_SUPPORTED
-#include "dbmdx-usecase-config-aca123.h"
+#ifdef DBMDX_MELON_USECASES_SUPPORTED
+#include "dbmdx-usecase-config-melon.h"
 #endif
 
 static struct usecase_config *usecases_map[] = {
-#ifdef DBMDX_aca123_USECASES_SUPPORTED
-	&config_uc_aca123_idle,
-	&config_uc_aca123_low_power,
-	&config_uc_aca123_production,
+#ifdef DBMDX_MELON_USECASES_SUPPORTED
+	&config_uc_melon_idle,
+	&config_uc_melon_low_power,
+	&config_uc_melon_production,
 #endif
 
 };

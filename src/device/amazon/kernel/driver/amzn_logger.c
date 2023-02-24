@@ -52,6 +52,9 @@ static int metrics_init;
 #define LOGGER_ENTRY_MAX_PAYLOAD 4076
 #define AMAZON_METRICS_BUF_SIZE (16 * 1024)
 #define AMAZON_VITALS_BUF_SIZE (128 * 1024)
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+#define MINERVA_LOG_MAX_SIZE 4096
+#endif
 
 /**
  * logger_entry (v1 version)
@@ -155,6 +158,7 @@ static int logger_kernel_write(struct ring_buffer *buf,
 	return 0;
 }
 
+#ifdef CONFIG_AMZN_METRICS_LOG
 /**
  * log_to_metrics - add a metric message to metrics log buffer
  * @priority: the Android priority of the message
@@ -194,6 +198,77 @@ int log_to_metrics(enum android_log_priority priority,
 	return ret;
 }
 EXPORT_SYMBOL(log_to_metrics);
+#endif /* CONFIG_AMZN_METRICS_LOG */
+
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+/**
+ * minerva_metrics_log - add a minerva message to metrics log buffer
+ * @buf:         the buf to save minerva log
+ * @max_size:    the max log size (4K)
+ * @fmt:	 the Minerva log message
+ * @...:	 a variable number of arguments specified in @fmt
+ * @Returns:     0 on success, error code on failurel
+ */
+int minerva_metrics_log(char *buf, int max_size, char *fmt, ...)
+{
+	char *minerva_metrics_buf = buf;
+	int ret = 0;
+	va_list args;
+	char *p;
+	const char *domain = "Minerva_Metrics_Log";
+	enum android_log_priority priority = ANDROID_LOG_INFO;
+	struct iovec vec[3];
+
+	/* check minerva log size. It limits to 4K  */
+	if (max_size > MINERVA_LOG_MAX_SIZE) {
+		pr_err("Your Minerva log's length is more than 4K!\n");
+		return -EINVAL;
+	}
+
+	if (metrics_init == 0 || minerva_metrics_buf == NULL) {
+		pr_err("Metrics has not init or your log buf is a nullptr.\n");
+		return -EINVAL;
+	}
+
+	memset(minerva_metrics_buf, 0, max_size);
+
+	va_start(args, fmt);
+	ret = vsnprintf(minerva_metrics_buf, max_size, fmt, args);
+	va_end(args);
+
+	/* check if its vsnprintf is successful  */
+	if (ret < 0) {
+		pr_err("Minerva log vsnprintf fail\n");
+		return -EINVAL;
+	}
+
+	/* check if overflow */
+	if (ret >= max_size) {
+		pr_err("Your log is overflow, part of log will be lost.\n");
+		return -EINVAL;
+	}
+
+	p = minerva_metrics_buf;
+
+	while (*p != '\0') {
+		if (' ' == *p)
+			*p = '_';
+		p++;
+	}
+
+	vec[0].iov_base = (unsigned char *)&priority;
+	vec[0].iov_len  = 1;
+
+	vec[1].iov_base = (void *)domain;
+	vec[1].iov_len  = strlen(domain) + 1;
+
+	vec[2].iov_base = (void *)minerva_metrics_buf;
+	vec[2].iov_len  = strlen(minerva_metrics_buf) + 1;
+
+	return logger_kernel_write(metrics_logger->buf, vec, 3);
+}
+EXPORT_SYMBOL(minerva_metrics_log);
+#endif /* CONFIG_AMZN_MINERVA_METRICS_LOG */
 
 static int log_to_vitals(enum android_log_priority priority,
 			 const char *domain, const char *log_msg)
@@ -220,6 +295,7 @@ static int log_to_vitals(enum android_log_priority priority,
 	return ret;
 }
 
+#ifdef CONFIG_AMZN_METRICS_LOG
 /**
  * log_counter_to_vitals - add a counter message to vitals log buffer
  * @priority:	the Android priority of the message
@@ -300,6 +376,7 @@ int log_timer_to_vitals(enum android_log_priority priority,
 	return log_to_vitals(priority, domain, str);
 }
 EXPORT_SYMBOL(log_timer_to_vitals);
+#endif /* CONFIG_AMZN_METRICS_LOG */
 
 #ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
 /**
@@ -461,7 +538,7 @@ int minerva_timer_to_vitals(enum android_log_priority priority,
 	return log_to_vitals(priority, domain, str);
 }
 EXPORT_SYMBOL(minerva_timer_to_vitals);
-#endif
+#endif /* CONFIG_AMZN_MINERVA_METRICS_LOG */
 
 static struct amazon_logger *get_log_from_minor(int minor)
 {

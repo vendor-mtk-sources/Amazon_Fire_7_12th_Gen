@@ -33,9 +33,10 @@
 #endif
 #include <linux/dma-mapping.h>
 #include "dbmdx-interface.h"
-#ifdef CONFIG_AMZN_METRICS_LOG
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
 /*add include file for metrics logging through logcat_vital-->KDM*/
 #include <linux/amzn_metricslog.h>
+#define DBMDX_METRICS_STR_LEN 512
 #endif
 
 #define DRV_NAME "dbmdx-snd-soc-platform"
@@ -517,6 +518,9 @@ static int dbmdx_pcm_open(struct snd_soc_component *component, struct snd_pcm_su
 static int dbmdx_pcm_open(struct snd_pcm_substream *substream)
 #endif
 {
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+	char minerva_buf[DBMDX_METRICS_STR_LEN];
+#endif
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_dbmdx_runtime_data *prtd;
 #ifndef USE_KERNEL_ABOVE_5_10
@@ -614,6 +618,19 @@ static int dbmdx_pcm_open(struct snd_pcm_substream *substream)
 #ifdef CONFIG_AMZN_METRICS_LOG
 	log_counter_to_vitals(ANDROID_LOG_INFO, "Kernel", "Kernel",
 			"DBMD4_DSP_metrics_count", "DSP_DATA_PROCESS_BEGIN", 1, "count", NULL, VITALS_NORMAL);
+#endif
+
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+	minerva_metrics_log(minerva_buf, DBMDX_METRICS_STR_LEN,
+			"%s:%s:100:%s,%s,%s,DSP_IRQ=false;BO,DSP_RESET=false;BO,"
+			"DSP_WDT=false;BO,DSP_DATA_PROCESS_BEGIN=true;BO:us-east-1",
+			METRICS_DSP_GROUP_ID, METRICS_DSP_VOICE_SCHEMA_ID,
+			PREDEFINED_ESSENTIAL_KEY, PREDEFINED_DEVICE_ID_KEY, PREDEFINED_DEVICE_LANGUAGE_KEY);
+	minerva_counter_to_vitals(ANDROID_LOG_INFO,
+			VITALS_DSP_GROUP_ID, VITALS_DSP_COUNTER_SCHEMA_ID,
+			"Kernel", "Kernel", "DBMD4_DSP_metrics_count",
+			"DSP_DATA_PROCESS_BEGIN", 1, "count",
+			NULL, VITALS_NORMAL, NULL, NULL);
 #endif
 
 	return 0;
@@ -714,6 +731,9 @@ static int dbmdx_pcm_close(struct snd_soc_component *component, struct snd_pcm_s
 static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
 #endif
 {
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+	char minerva_buf[DBMDX_METRICS_STR_LEN];
+#endif
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_dbmdx_runtime_data *prtd = runtime->private_data;
 #ifndef USE_KERNEL_ABOVE_5_10
@@ -731,7 +751,7 @@ static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
 	struct timer_list *timer = prtd->timer;
 #endif /* !TIMER_LIST_PTR */
 
-#ifdef CONFIG_AMZN_METRICS_LOG
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
 	ktime_t Current;
 #endif
 
@@ -761,6 +781,22 @@ static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
 			"DBMD4_DSP_metrics_time", "DSP_DATA_CANCEL",
 			ktime_to_ms(Current)  - ktime_to_ms(p->StreamOpenTime),
 			"ms", VITALS_NORMAL);
+#endif
+
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+		Current = ktime_get();
+		minerva_metrics_log(minerva_buf, DBMDX_METRICS_STR_LEN,
+			"%s:%s:100:%s,%s,%s,DSP_DATA_CATCH_UP_FINISH=%d;IN,"
+			"DSP_DATA_PROCESS_FINISH=%d;IN,DSP_DATA_CANCEL=%d;IN:us-east-1",
+			METRICS_DSP_GROUP_ID, METRICS_DSP_CATCH_SCHEMA_ID,
+			PREDEFINED_ESSENTIAL_KEY, PREDEFINED_DEVICE_ID_KEY, PREDEFINED_DEVICE_LANGUAGE_KEY,
+			-1, -1, ktime_to_ms(Current) - ktime_to_ms(p->StreamOpenTime));
+		minerva_timer_to_vitals(ANDROID_LOG_INFO,
+			VITALS_DSP_GROUP_ID, VITALS_DSP_TIMER_SCHEMA_ID,
+			"Kernel", "Kernel",
+			"DBMD4_DSP_metrics_time", "DSP_DATA_CANCEL",
+			ktime_to_ms(Current)  - ktime_to_ms(p->StreamOpenTime),
+			"ms", VITALS_NORMAL, NULL, NULL);
 #endif
 }
 

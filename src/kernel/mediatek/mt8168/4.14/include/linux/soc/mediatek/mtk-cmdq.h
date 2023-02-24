@@ -259,12 +259,6 @@ s32 cmdq_pkt_write_reg_addr(struct cmdq_pkt *pkt, dma_addr_t addr,
 s32 cmdq_pkt_write_value_addr(struct cmdq_pkt *pkt, dma_addr_t addr,
 	u32 value, u32 mask);
 
-s32 cmdq_pkt_store_value(struct cmdq_pkt *pkt, u16 indirect_dst_reg_idx,
-	u16 dst_addr_low, u32 value, u32 mask);
-
-s32 cmdq_pkt_store_value_reg(struct cmdq_pkt *pkt, u16 indirect_dst_reg_idx,
-	u16 dst_addr_low, u16 indirect_src_reg_idx, u32 mask);
-
 s32 cmdq_pkt_store64_value_reg(struct cmdq_pkt *pkt,
 	u16 indirect_dst_reg_idx, u16 indirect_src_reg_idx);
 

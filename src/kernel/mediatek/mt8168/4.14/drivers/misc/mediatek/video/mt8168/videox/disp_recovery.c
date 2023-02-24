@@ -69,6 +69,10 @@
 #include "disp_partial.h"
 #include "ddp_dsi.h"
 
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+#include <linux/amzn_metricslog.h>
+#endif
+
 #ifdef CONFIG_AMAZON_METRICS_LOG
 #include <linux/metricslog.h>
 #endif
@@ -900,14 +904,25 @@ int primary_display_esd_recovery(void)
 	enum DISP_STATUS ret = DISP_STATUS_OK;
 	struct LCM_PARAMS *lcm_param = NULL;
 	mmp_event mmp_r = ddp_mmp_get_events()->esd_recovery_t;
-#ifdef CONFIG_AMAZON_METRICS_LOG
-	char buf[128];
-	int error = 0;
+#if defined(CONFIG_AMZN_METRICS_LOG) || defined(CONFIG_AMZN_MINERVA_METRICS_LOG)
+	char buf[512];
+#endif
 
+#if defined(CONFIG_AMZN_METRICS_LOG)
+	int error = 0;
 	error = snprintf(buf, sizeof(buf), "%s:lcd:esd_recovery=1;CT;1:NR", __func__);
 	if (error < 0)
 		pr_notice("%s, snprintf fail", __func__);
+
 	log_to_metrics(ANDROID_LOG_INFO, "LCDEvent", buf);
+#endif
+
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+	minerva_metrics_log(buf, 512, "%s:%s:100:%s,%s,%s,%s,lcm_state=None;SY,"
+			"ESD_Recovery=1;IN:us-east-1",
+			METRICS_LCD_GROUP_ID, METRICS_LCD_SCHEMA_ID,
+			PREDEFINED_ESSENTIAL_KEY, PREDEFINED_MODEL_KEY,
+			PREDEFINED_TZ_KEY, PREDEFINED_DEVICE_LANGUAGE_KEY);
 #endif
 
 	DISPFUNC();

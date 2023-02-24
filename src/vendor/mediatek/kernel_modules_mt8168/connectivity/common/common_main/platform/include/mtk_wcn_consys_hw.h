@@ -92,6 +92,10 @@
 
 #define DYNAMIC_DUMP_GROUP_NUM 5
 
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+#define MINERVA_WIFI_GROUP_ID	"30pfp83p"
+#define MINERVA_WIFI_SCHEMA_ID	"ir04/2/03330400"
+#endif
 /*******************************************************************************
 *                    E X T E R N A L   R E F E R E N C E S
 ********************************************************************************
@@ -346,12 +350,6 @@ VOID mtk_consys_set_chip_reset_status(INT32 status);
 INT32 mtk_consys_chip_reset_status(VOID);
 #if 1 /* need confirm by Can */
 INT32 mtk_consys_get_wifi_ant_swap_gpio_value(VOID);
-#endif
-
-#if defined(CONFIG_AMAZON_METRICS_LOG) || defined(CONFIG_AMZN_METRICS_LOG)
-extern int minerva_log_counter_to_vitals(android_LogPriority priority,
-		const char *source, const char *key,
-		long counter_value, const char *metadata);
 #endif
 #endif /* _MTK_WCN_CONSYS_HW_H_ */
 
