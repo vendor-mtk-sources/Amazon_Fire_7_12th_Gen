@@ -301,6 +301,168 @@ int log_timer_to_vitals(enum android_log_priority priority,
 }
 EXPORT_SYMBOL(log_timer_to_vitals);
 
+#ifdef CONFIG_AMZN_MINERVA_METRICS_LOG
+/**
+ * minerva_counter_to_vitals - add a counter message to Minerva vitals log buffer
+ * @priority:   the Android priority of the message
+ * @group_id:   the Group Id of vitals Minerva
+ * @schema_id:  the Schema Id of vitals Minerva
+ * @domain:     the domain of this message belong to
+ * @program:    the vital record category name
+ * @source:     the vital name
+ * @key:        the counter name
+ * @counter_value:the counter value
+ * @metadata:   the metadata info
+ * @type:       the type of vitals
+ * @Returns:    0 on success, error code on failure
+ */
+int minerva_counter_to_vitals(enum android_log_priority priority,
+			const char *group_id, const char *schema_id,
+			const char *domain, const char *program,
+			const char *source, const char *key,
+			long counter_value, const char *unit,
+			const char *metadata, vitals_type type,
+			const char *dimensions, const char *annotations)
+{
+	char str[VITAL_ENTRY_MAX_PAYLOAD];
+	char metadata_msg[VITAL_ENTRY_MAX_PAYLOAD];
+	size_t metadata_length = 0;
+
+	/*
+	 * metadata format metadata=[(metadata)]!{
+	 * "d"#{"groupId"$"(group_id)"#"schemaId"$"(schema_id)"
+	 * [(dimensions)]}["m"#{(annotations)}]}
+	 */
+	if (metadata && strlen(metadata))
+		metadata_length += snprintf(metadata_msg,
+			VITAL_ENTRY_MAX_PAYLOAD, ",metadata=%s!{", metadata);
+	else
+		metadata_length += snprintf(metadata_msg,
+			VITAL_ENTRY_MAX_PAYLOAD, ",metadata=!{");
+
+	if (dimensions && strlen(dimensions))
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			"\"d\"#{\"groupId\"#\"%s\"$\"schemaId\"#\"%s\"$%s}",
+			group_id, schema_id, dimensions);
+	else
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			"\"d\"#{\"groupId\"#\"%s\"$\"schemaId\"#\"%s\"}",
+			group_id, schema_id);
+
+	if (annotations && strlen(annotations))
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			"$\"m\"#{%s}};DV;1", annotations);
+	else
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			"};DV;1");
+
+	/*
+	 * format (program):(source):type=(type);DV;1,
+	 * [key=(key);DV;1,]counter=(counter_value);CT;1,
+	 * unit=(unit);DV;1,metadata=(metadata_msg);DV;1:HI
+	 */
+	if (key) {
+		snprintf(str, VITAL_ENTRY_MAX_PAYLOAD,
+			"%s:%s:type=%d;DV;1,key=%s;DV;1,"
+			"counter=%ld;CT;1,unit=%s;DV;1%s:HI",
+			program, source,
+			type, key, counter_value, unit,
+			metadata_msg);
+	} else {
+		snprintf(str, VITAL_ENTRY_MAX_PAYLOAD,
+			"%s:%s:type=%d;DV;1,"
+			"counter=%ld;CT;1,unit=%s;DV;1%s:HI",
+			program, source, type,
+			counter_value, unit,
+			metadata_msg);
+	}
+
+	return log_to_vitals(priority, domain, str);
+}
+EXPORT_SYMBOL(minerva_counter_to_vitals);
+
+/**
+ * minerva_timer_to_vitals - add a timer message to minerva vitals log buffer
+ * @priority:   the Android priority of the message
+ * @group_id:   the Group Id of vitals Minerva
+ * @schema_id:  the Schema Id of vitals Minerva
+ * @domain:     the domain of this message belong to
+ * @program:    the vital record category name
+ * @source:     the vital name
+ * @key:        the timer name
+ * @timer_value:the timer value
+ * @unit:       unit for the timer
+ * @type:       the type of vitals.
+ * @Returns:    0 on success, error code on failure
+ */
+int minerva_timer_to_vitals(enum android_log_priority priority,
+			const char *group_id, const char *schema_id,
+			const char *domain, const char *program,
+			const char *source, const char *key,
+			long timer_value, const char *unit, vitals_type type,
+			const char *dimensions, const char *annotations)
+{
+	char str[VITAL_ENTRY_MAX_PAYLOAD];
+	char metadata_msg[VITAL_ENTRY_MAX_PAYLOAD];
+	size_t metadata_length = 0;
+
+	/*
+	 * metadata format metadata=!{"d"#{
+	 * "groupId"$"(group_id)"#"schemaId"$"(schema_id)"
+	 * [(dimensions)]}["m"#{(annotations)}]}
+	 */
+	if (dimensions && strlen(dimensions))
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			",metadata=!{"
+			"\"d\"#{\"groupId\"#\"%s\"$\"schemaId\"#\"%s\"$%s}",
+			group_id, schema_id, dimensions);
+	else
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			",metadata=!{"
+			"\"d\"#{\"groupId\"#\"%s\"$\"schemaId\"#\"%s\"}",
+			group_id, schema_id);
+
+	if (annotations && strlen(annotations))
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			"$\"m\"#{%s}};DV;1", annotations);
+	else
+		metadata_length += snprintf(&metadata_msg[metadata_length],
+			VITAL_ENTRY_MAX_PAYLOAD - metadata_length,
+			"};DV;1");
+
+	/*
+	 * format (program):(source):type=(type);DV;1,
+	 * [key=(key);DV;1,]timer=(timer_value);TI;1,
+	 * unit=(unit);DV;1,metadata=(metadata_msg);DV;1:HI
+	 */
+	if (key) {
+		snprintf(str, VITAL_ENTRY_MAX_PAYLOAD,
+			"%s:%s:type=%d;DV;1,key=%s;DV;1,"
+			"timer=%ld;TI;1,unit=%s;DV;1%s:HI",
+			program, source, type,
+			key, timer_value, unit,
+			metadata_msg);
+	} else {
+		snprintf(str, VITAL_ENTRY_MAX_PAYLOAD,
+			"%s:%s:type=%d;DV;1,"
+			"timer=%ld;TI;1,unit=%s;DV;1%s:HI",
+			program, source, type,
+			timer_value, unit,
+			metadata_msg);
+	}
+
+	return log_to_vitals(priority, domain, str);
+}
+EXPORT_SYMBOL(minerva_timer_to_vitals);
+#endif
+
 static struct amazon_logger *get_log_from_minor(int minor)
 {
 	struct amazon_logger *log;

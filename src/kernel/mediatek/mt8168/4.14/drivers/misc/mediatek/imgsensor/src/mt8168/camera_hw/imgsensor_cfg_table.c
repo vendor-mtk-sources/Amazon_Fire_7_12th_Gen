@@ -1091,6 +1091,34 @@ struct IMGSENSOR_HW_POWER_SEQ sensor_power_sequence[] = {
 		},
 	},
 #endif
+#if defined(SC202CS_QUARTZ_RAW_CXT_FRONT)
+	{
+		SENSOR_DRVNAME_SC202CS_QUARTZ_RAW_CXT_FRONT,
+		{
+			{PDN, Vol_Low, 5},
+			{SensorMCLK, Vol_High, 0},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 2},
+			{PDN, Vol_High, 5},
+			{PDN, Vol_Low, 5},
+			{PDN, Vol_High, 10},
+		},
+	},
+#endif
+#if defined(SC202CS_QUARTZ_RAW_CXT_REAR)
+	{
+		SENSOR_DRVNAME_SC202CS_QUARTZ_RAW_CXT_REAR,
+		{
+			{PDN, Vol_Low, 5},
+			{SensorMCLK, Vol_High, 0},
+			{DOVDD, Vol_1800, 1},
+			{AVDD, Vol_2800, 2},
+			{PDN, Vol_High, 5},
+			{PDN, Vol_Low, 5},
+			{PDN, Vol_High, 10},
+		},
+	},
+#endif
 	/* add new sensor before this line */
 	{NULL,},
 };

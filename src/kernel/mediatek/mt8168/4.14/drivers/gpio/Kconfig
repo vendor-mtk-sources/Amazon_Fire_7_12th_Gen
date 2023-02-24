@@ -208,10 +208,10 @@ config GPIO_FTGPIO010
 	depends on OF_GPIO
 	select GPIO_GENERIC
 	select GPIOLIB_IRQCHIP
-	default (ARCH_abc123 || ARCH_MOXART)
+	default (ARCH_GEMINI || ARCH_MOXART)
 	help
 	  Support for common GPIOs from the Faraday FTGPIO010 IP core, found in
-	  Cortina systems abc123 platforms, Moxa ART and others.
+	  Cortina systems Gemini platforms, Moxa ART and others.
 
 config GPIO_GENERIC_PLATFORM
 	tristate "Generic memory-mapped GPIO controller support (MMIO platform device)"

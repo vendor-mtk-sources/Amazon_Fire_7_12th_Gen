@@ -1515,10 +1515,10 @@ config RTC_DRV_ARMADA38X
 config RTC_DRV_FTRTC010
 	tristate "Faraday Technology FTRTC010 RTC"
 	depends on HAS_IOMEM
-	default ARCH_abc123
+	default ARCH_GEMINI
 	help
 	  If you say Y here you will get support for the
-	  Faraday Technolog FTRTC010 found on e.g. abc123 SoC's.
+	  Faraday Technolog FTRTC010 found on e.g. Gemini SoC's.
 
 	  This driver can also be built as a module. If so, the module
 	  will be called rtc-ftrtc010.

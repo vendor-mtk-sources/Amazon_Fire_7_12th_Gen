@@ -133,13 +133,13 @@ config COMMON_CLK_CS2000_CP
 	help
 	  If you say yes here you get support for the CS2000 clock multiplier.
 
-config COMMON_CLK_abc123
-	bool "Clock driver for Cortina Systems abc123 SoC"
-	depends on ARCH_abc123 || COMPILE_TEST
+config COMMON_CLK_GEMINI
+	bool "Clock driver for Cortina Systems Gemini SoC"
+	depends on ARCH_GEMINI || COMPILE_TEST
 	select MFD_SYSCON
 	select RESET_CONTROLLER
 	---help---
-	  This driver supports the SoC clocks on the Cortina Systems abc123
+	  This driver supports the SoC clocks on the Cortina Systems Gemini
 	  platform, also known as SL3516 or CS3516.
 
 config COMMON_CLK_S2MPS11

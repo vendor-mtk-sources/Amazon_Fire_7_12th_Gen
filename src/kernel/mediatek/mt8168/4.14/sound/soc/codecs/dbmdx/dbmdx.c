@@ -11097,19 +11097,19 @@ int uc_lp_model_config_dummy(struct dbmdx_private *p,
 	return 0;
 }
 
-int melon_uc_lp_model_config(struct dbmdx_private *p,
+int aca123_uc_lp_model_config(struct dbmdx_private *p,
 				struct usecase_config *uc)
 {
 	return uc_start_loaded_models_general(p, uc);
 }
 
-int melon_uc_nr_model_config(struct dbmdx_private *p,
+int aca123_uc_nr_model_config(struct dbmdx_private *p,
 				struct usecase_config *uc)
 {
 	return uc_start_loaded_models_general(p, uc);
 }
 
-int melon_uc_production_model_config(struct dbmdx_private *p,
+int aca123_uc_production_model_config(struct dbmdx_private *p,
 				struct usecase_config *uc)
 {
 	p->va_ve_flags.ignore_vt_data = 1;
@@ -13599,7 +13599,7 @@ bool adfModel_Load(u8 *modelAddress, struct firmware *wakewordModel)
 		cur_usecase = usecases_map[ind];
 		if (!cur_usecase)
 			continue;
-		if (cur_usecase->id == (DBMDX_USECASE_ID_UC_IDX_00 | DBMDX_USECASE_ID_PRJ_MELON | DBMDX_USECASE_ID_HWREV_00))
+		if (cur_usecase->id == (DBMDX_USECASE_ID_UC_IDX_00 | DBMDX_USECASE_ID_PRJ_aca123 | DBMDX_USECASE_ID_HWREV_00))
 			break;
 	}
 	if (ind >= num_usecases || !cur_usecase) {
@@ -17749,7 +17749,7 @@ static int dbmdx_dsp_idle_set(struct snd_kcontrol *kcontrol,
 			__func__);
 			goto out;
 		}
-		cmd = (((DBMDX_USECASE_ID_UC_IDX_00 | DBMDX_USECASE_ID_PRJ_MELON | DBMDX_USECASE_ID_HWREV_00) << DBMDX_USECASE_MGR_UID_BITS) & DBMDX_USECASE_MGR_UID_MASK)
+		cmd = (((DBMDX_USECASE_ID_UC_IDX_00 | DBMDX_USECASE_ID_PRJ_aca123 | DBMDX_USECASE_ID_HWREV_00) << DBMDX_USECASE_MGR_UID_BITS) & DBMDX_USECASE_MGR_UID_MASK)
 				| ((DBMDX_DETECTION << DBMDX_USECASE_MGR_MODE_BITS) & DBMDX_USECASE_MGR_MODE_MASK)
 				| DBMDX_USECASE_MGR_CMD_LOAD | DBMDX_USECASE_MGR_CMD_START;
 	} else if (val == 1) {
@@ -21487,14 +21487,14 @@ static int dbmdx_get_devtree_pdata(struct device *dev,
 
 		if (pdata->project_sub_type ==
 			DBMDX_VA_VE_PROJECT_SUB_TYPE_VT_ONLY) {
-			/* Melon */
+			/* aca123 */
 			p->va_chip_enabled = true;
 			p->va_ve_chip_enabled = false;
 			p->mics_connected_to_va_ve_chip = false;
 			p->tdm_enable = (DBMDX_TDM_0_VA |
 						DBMDX_TDM_1_VA);
-#ifdef DBMDX_MELON_USECASES_SUPPORTED
-			p->idle_usecase = &config_uc_melon_idle;
+#ifdef DBMDX_aca123_USECASES_SUPPORTED
+			p->idle_usecase = &config_uc_aca123_idle;
 #else
 			p->idle_usecase = NULL;
 #endif
@@ -22441,7 +22441,7 @@ static int verify_platform_data(struct device *dev,
 
 		if (pdata->project_sub_type ==
 			DBMDX_VA_VE_PROJECT_SUB_TYPE_VT_ONLY) {
-			/* Melon */
+			/* aca123 */
 			p->va_chip_enabled = true;
 			p->va_ve_chip_enabled = false;
 		} else {

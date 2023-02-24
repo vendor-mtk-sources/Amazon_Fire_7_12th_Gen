@@ -84,13 +84,13 @@ config MTD_PHYSMAP_OF_VERSATILE
 	  platforms, basically to add a VPP (write protection) callback so
 	  the flash can be taken out of write protection.
 
-config MTD_PHYSMAP_OF_abc123
-	bool "Cortina abc123 OF-based physical memory map handling"
+config MTD_PHYSMAP_OF_GEMINI
+	bool "Cortina Gemini OF-based physical memory map handling"
 	depends on MTD_PHYSMAP_OF
 	depends on MFD_SYSCON
-	default ARCH_abc123
+	default ARCH_GEMINI
 	help
-	  This provides some extra DT physmap parsing for the abc123
+	  This provides some extra DT physmap parsing for the Gemini
 	  platforms, some detection and setting up parallel mode on the
 	  external interface.
 

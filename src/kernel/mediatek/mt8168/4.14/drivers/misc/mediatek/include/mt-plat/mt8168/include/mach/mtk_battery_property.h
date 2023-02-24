@@ -28,7 +28,7 @@
 /* define Xmins to shutdown*/
 #define SHUTDOWN_1_TIME	5
 
-#define SHUTDOWN_GAUGE1_VBAT_EN 1
+#define SHUTDOWN_GAUGE1_VBAT_EN 0
 #define SHUTDOWN_GAUGE1_VBAT 34000
 
 #define SHUTDOWN_GAUGE0_VOLTAGE 34000

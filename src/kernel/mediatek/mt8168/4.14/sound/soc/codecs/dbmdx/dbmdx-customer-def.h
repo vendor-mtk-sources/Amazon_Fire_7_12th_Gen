@@ -40,7 +40,7 @@
 
 
 /* ==================================================================*/
-#define DBMDX_MELON_USECASES_SUPPORTED 1
+#define DBMDX_aca123_USECASES_SUPPORTED 1
 
 
 #define HOST_HW_TDM_CONF_ASYNC_DOWN_DATA_DOWN 0

@@ -14,7 +14,7 @@
 #include "mediatek/mt8168_dtbo.dts"
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/phy/phy.h>
-#include "mediatek/d4-spi-melon.dtsi"
+#include "mediatek/d4-spi-aca123.dtsi"
 #define ROOT_NODE &odm
 
 / {

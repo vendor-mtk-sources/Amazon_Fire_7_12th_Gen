@@ -333,6 +333,8 @@
 /*Others*/
 #define SHARP3D_SENSOR_ID                       0x003d
 #define T8EV5_SENSOR_ID                         0x1011
+#define SC202CS_QUARTZ_RAW_CXT_FRONT_SENSOR_ID  0xeb52
+#define SC202CS_QUARTZ_RAW_CXT_REAR_SENSOR_ID   0xeb53
 
 /* CAMERA DRIVER NAME */
 #define CAMERA_HW_DEVNAME                       "kd_camera_hw"
@@ -519,7 +521,8 @@
 #define SENSOR_DRVNAME_IMX135_MIPI_RAW_8MP      "imx135_mipi_raw_8mp"
 #define SENSOR_DRVNAME_OV13870_MIPI_RAW_5MP     "ov13870_mipi_raw_5mp"
 #define SENSOR_DRVNAME_OV8856_MIPI_RAW_5MP      "ov8856_mipi_raw_5mp"
-
+#define SENSOR_DRVNAME_SC202CS_QUARTZ_RAW_CXT_REAR  "sc202cs_quartz_raw_cxt_rear"
+#define SENSOR_DRVNAME_SC202CS_QUARTZ_RAW_CXT_FRONT "sc202cs_quartz_raw_cxt_front"
 /******************************************************************************
  *
  ******************************************************************************/

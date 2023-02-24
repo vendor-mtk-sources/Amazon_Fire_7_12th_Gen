@@ -225,13 +225,13 @@ config SATA_FSL
 
 	  If unsure, say N.
 
-config SATA_abc123
-	tristate "abc123 SATA bridge support"
-	depends on ARCH_abc123 || COMPILE_TEST
-	default ARCH_abc123
+config SATA_GEMINI
+	tristate "Gemini SATA bridge support"
+	depends on ARCH_GEMINI || COMPILE_TEST
+	default ARCH_GEMINI
 	help
 	  This enabled support for the FTIDE010 to SATA bridge
-	  found in Cortina Systems abc123 platform.
+	  found in Cortina Systems Gemini platform.
 
 	  If unsure, say N.
 
@@ -625,10 +625,10 @@ config PATA_FTIDE010
 	tristate "Faraday Technology FTIDE010 PATA support"
 	depends on OF
 	depends on ARM
-	depends on SATA_abc123
+	depends on SATA_GEMINI
 	help
 	  This option enables support for the Faraday FTIDE010
-	  PATA controller found in the Cortina abc123 SoCs.
+	  PATA controller found in the Cortina Gemini SoCs.
 
 	  If unsure, say N.
 
