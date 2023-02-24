@@ -208,6 +208,26 @@ int charger_dev_get_ibus(struct charger_device *chg_dev, u32 *ibus)
 }
 EXPORT_SYMBOL(charger_dev_get_ibus);
 
+int charger_dev_get_vendor(struct charger_device *chg_dev, char *vendor, int length)
+{
+	if (chg_dev != NULL && chg_dev->ops != NULL &&
+	    chg_dev->ops->get_vendor) {
+		return chg_dev->ops->get_vendor(chg_dev, vendor, length);
+	}
+	return -ENOTSUPP;
+}
+EXPORT_SYMBOL(charger_dev_get_vendor);
+
+int charger_dev_get_reg(struct charger_device *chg_dev, char *reg, int length)
+{
+	if (chg_dev != NULL && chg_dev->ops != NULL &&
+	    chg_dev->ops->get_reg) {
+		return chg_dev->ops->get_reg(chg_dev, reg, length);
+	}
+	return -ENOTSUPP;
+}
+EXPORT_SYMBOL(charger_dev_get_reg);
+
 int charger_dev_get_temperature(struct charger_device *chg_dev, int *tchg_min,
 		int *tchg_max)
 {

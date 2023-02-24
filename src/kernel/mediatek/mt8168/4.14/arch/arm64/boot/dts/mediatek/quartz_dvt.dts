@@ -411,7 +411,8 @@ ROOT_NODE {
 	pinctrl-0 = <&i2c0_pins>;
 	clock-frequency = <400000>;
 	status = "okay";
-		bq25601@6b {
+
+	bq25601@6b {
 		compatible = "ti,bq25601";
 		reg = <0x6b>;
 
@@ -438,6 +439,24 @@ ROOT_NODE {
 		ti,bq2560x,boost-voltage = <5000>;
 		ti,bq2560x,vac-ovp-threshold = <6500>;
 	};
+
+	sgm4154x: sgm4154x@1a {
+		status = "okay";
+		compatible = "sgm,sgm4154x";
+		reg = <0x1a>;
+		interrupt-parent = <&pio>;
+		interrupts = <123 IRQ_TYPE_EDGE_FALLING>;
+		charger_name = "primary_chg";
+		eint_name = "sgm_int";
+		/* unit is uA or uV */
+		sgm4154x,precharge-current = <120000>;
+		sgm4154x,termination-current = <240000>;
+		sgm4154x,boost-current = <1200000>;
+		sgm4154x,boost-voltage = <5000000>;
+		sgm4154x,vac-ovp-threshold = <6500000>;
+		sgm4154x,safety-hours = <20>;
+	};
+
 	rt9466@53 {
 		compatible = "richtek,rt9466";
 		reg = <0x53>;

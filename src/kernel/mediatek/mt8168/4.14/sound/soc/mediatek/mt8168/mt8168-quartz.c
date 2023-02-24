@@ -174,14 +174,14 @@ static const struct soc_enum mt8168_quartz_enum[] = {
 	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(EXT_SPK_PGA_GAIN), EXT_SPK_PGA_GAIN),
 };
 
-static int mt8168_quartz_ext_speaker_pga_get(struct snd_kcontrol *kcontrol,
+static int mt8168_qua_ext_speaker_pga_get(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	ucontrol->value.integer.value[0] = spkr_gain;
 	return 0;
 }
 
-static int mt8168_quartz_ext_speaker_pga_put(struct snd_kcontrol *kcontrol,
+static int mt8168_qua_ext_speaker_pga_put(struct snd_kcontrol *kcontrol,
 	struct snd_ctl_elem_value *ucontrol)
 {
 	struct snd_soc_card *card = snd_kcontrol_chip(kcontrol);
@@ -192,8 +192,8 @@ static int mt8168_quartz_ext_speaker_pga_put(struct snd_kcontrol *kcontrol,
 		card_data->spk_pa_id == EXT_AMP_AD51562 ||
 		!gpio_is_valid(card_data->spk_pa_gain1_gpio) ||
 		!gpio_is_valid(card_data->spk_pa_gain2_gpio)) {
-		dev_info(card->dev, "%s, speaker amp not support setting\n", __func__);
-		return -EINVAL;
+		dev_dbg(card->dev, "%s, speaker amp determined by hw\n", __func__);
+		return 0;
 	}
 
 	if (ucontrol->value.enumerated.item[0] >= ARRAY_SIZE(EXT_SPK_PGA_GAIN)) {
@@ -241,8 +241,8 @@ static int mt8168_quartz_ext_speaker_pga_put(struct snd_kcontrol *kcontrol,
 static const struct snd_kcontrol_new mt8168_quartz_controls[] = {
 	SOC_ENUM_EXT("Ext_Speaker_PGA_Gain",
 		mt8168_quartz_enum[0],
-		mt8168_quartz_ext_speaker_pga_get,
-		mt8168_quartz_ext_speaker_pga_put),
+		mt8168_qua_ext_speaker_pga_get,
+		mt8168_qua_ext_speaker_pga_put),
 };
 
 #ifdef CONFIG_SND_SOC_RT551X
@@ -280,7 +280,7 @@ static struct snd_soc_dai_link_component rt551x_codecs[] = {
 };
 #endif
 
-static void mt8168_quartz_ext_amp_spk_turn_on(struct snd_soc_card *card)
+static void mt8168_qua_ext_amp_spk_turn_on(struct snd_soc_card *card)
 {
 	struct mt8168_quartz_priv *card_data =
 		snd_soc_card_get_drvdata(card);
@@ -328,7 +328,7 @@ exit:
 			card_data->ext_spk_amp_shutdown_time_us + 1);
 }
 
-static void mt8168_quartz_ext_amp_spk_turn_off(struct snd_soc_card *card)
+static void mt8168_qua_ext_amp_spk_turn_off(struct snd_soc_card *card)
 {
 	struct mt8168_quartz_priv *card_data =
 		snd_soc_card_get_drvdata(card);
@@ -364,7 +364,7 @@ static void mt8168_quartz_ext_amp_spk_turn_off(struct snd_soc_card *card)
 }
 
 /* HP Spk Amp */
-static int mt8168_quartz_spk_amp_event(struct snd_soc_dapm_widget *w,
+static int mt8168_qua_spk_amp_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_dapm_context *dapm = w->dapm;
@@ -374,10 +374,10 @@ static int mt8168_quartz_spk_amp_event(struct snd_soc_dapm_widget *w,
 
 	switch (event) {
 	case SND_SOC_DAPM_POST_PMU:
-		mt8168_quartz_ext_amp_spk_turn_on(card);
+		mt8168_qua_ext_amp_spk_turn_on(card);
 		break;
 	case SND_SOC_DAPM_PRE_PMD:
-		mt8168_quartz_ext_amp_spk_turn_off(card);
+		mt8168_qua_ext_amp_spk_turn_off(card);
 		break;
 	default:
 		break;
@@ -407,7 +407,7 @@ static void mt8168_quartz_ext_hp_amp_turn_off(struct snd_soc_card *card)
 }
 
 /* HP Amp */
-static int mt8168_quartz_hp_amp_event(struct snd_soc_dapm_widget *w,
+static int mt8168_qua_hp_amp_event(struct snd_soc_dapm_widget *w,
 	struct snd_kcontrol *kcontrol, int event)
 {
 	struct snd_soc_dapm_context *dapm = w->dapm;
@@ -463,9 +463,9 @@ static const struct snd_soc_dapm_widget mt8168_quartz_widgets[] = {
 		&mt8168_quartz_hpr_spk_switch_ctrl),
 
 	SND_SOC_DAPM_SPK("HP Spk Amp", NULL),
-	SND_SOC_DAPM_SPK("LOL Spk Amp", mt8168_quartz_spk_amp_event),
+	SND_SOC_DAPM_SPK("LOL Spk Amp", mt8168_qua_spk_amp_event),
 	SND_SOC_DAPM_MIC("PMIC MIC", NULL),
-	SND_SOC_DAPM_HP("Headphone", mt8168_quartz_hp_amp_event),
+	SND_SOC_DAPM_HP("Headphone", mt8168_qua_hp_amp_event),
 #ifdef TEST_BACKEND_WITH_ENDPOINT
 	SND_SOC_DAPM_OUTPUT("TDM_OUT Out"),
 #endif
@@ -618,7 +618,7 @@ static struct snd_soc_ops adsp_hostless_va_ops = {
 };
 #endif
 
-static int mt8168_quartz_int_adda_startup(
+static int mt8168_qua_int_adda_startup(
 	struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -651,7 +651,7 @@ static int mt8168_quartz_int_adda_startup(
 	return 0;
 }
 
-static void mt8168_quartz_int_adda_shutdown(
+static void mt8168_qua_int_adda_shutdown(
 	struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -684,8 +684,8 @@ static void mt8168_quartz_int_adda_shutdown(
 }
 
 static struct snd_soc_ops mt8168_quartz_int_adda_ops = {
-	.startup = mt8168_quartz_int_adda_startup,
-	.shutdown = mt8168_quartz_int_adda_shutdown,
+	.startup = mt8168_qua_int_adda_startup,
+	.shutdown = mt8168_qua_int_adda_shutdown,
 };
 
 /* Digital audio interface glue - connects codec <---> CPU */
@@ -1050,7 +1050,7 @@ static struct snd_soc_dai_link mt8168_quartz_dais[] = {
 #endif
 };
 
-static int mt8168_quartz_gpio_probe(struct snd_soc_card *card)
+static int mt8168_qua_gpio_probe(struct snd_soc_card *card)
 {
 	struct mt8168_quartz_priv *priv = snd_soc_card_get_drvdata(card);
 	struct device_node *np = card->dev->of_node;
@@ -1357,7 +1357,7 @@ static struct snd_soc_card mt8168_quartz_card = {
 	.num_dapm_routes = ARRAY_SIZE(mt8168_quartz_routes),
 };
 
-static int mt8168_quartz_dev_probe(struct platform_device *pdev)
+static int mt8168_qua_dev_probe(struct platform_device *pdev)
 {
 	struct snd_soc_card *card = &mt8168_quartz_card;
 	struct device *dev = &pdev->dev;
@@ -1419,7 +1419,7 @@ static int mt8168_quartz_dev_probe(struct platform_device *pdev)
 
 	snd_soc_card_set_drvdata(card, priv);
 
-	mt8168_quartz_gpio_probe(card);
+	mt8168_qua_gpio_probe(card);
 
 	mt8168_quartz_parse_of(card, np);
 
@@ -1437,18 +1437,18 @@ static const struct of_device_id mt8168_quartz_dt_match[] = {
 };
 MODULE_DEVICE_TABLE(of, mt8168_quartz_dt_match);
 
-static struct platform_driver mt8168_quartz_driver = {
+static struct platform_driver mt8168_qua_driver = {
 	.driver = {
-		   .name = "mt8168-quartz",
+		   .name = "mt8168-qua",
 		   .of_match_table = mt8168_quartz_dt_match,
 #ifdef CONFIG_PM
 		   .pm = &snd_soc_pm_ops,
 #endif
 	},
-	.probe = mt8168_quartz_dev_probe,
+	.probe = mt8168_qua_dev_probe,
 };
 
-module_platform_driver(mt8168_quartz_driver);
+module_platform_driver(mt8168_qua_driver);
 
 /* Module information */
 MODULE_DESCRIPTION("MT8168 Quartz SoC machine driver");

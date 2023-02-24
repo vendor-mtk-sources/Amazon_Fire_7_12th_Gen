@@ -353,6 +353,8 @@ static struct file_operations adfDebugFops = {
 	.owner = THIS_MODULE,
 	.open = _adfDebug_open,
 	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
 	.write = _adfDebug_writeCli,
 };
 
@@ -360,6 +362,8 @@ static struct file_operations adfDebugStateFops = {
 	.owner = THIS_MODULE,
 	.open = _adfDebug_openState,
 	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
 	.write = _adfDebug_writeState,
 };
 

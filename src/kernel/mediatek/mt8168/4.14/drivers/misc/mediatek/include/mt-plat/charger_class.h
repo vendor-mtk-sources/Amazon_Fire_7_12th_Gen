@@ -148,6 +148,9 @@ struct charger_ops {
 	int (*get_temp)(struct charger_device *dev);
 	int (*set_wpc_en)(struct charger_device *dev, bool en);
 	int (*set_sleep_en)(struct charger_device *dev, bool en);
+	/*vendor&register*/
+	int (*get_vendor)(struct charger_device *dev, char *vendor, int length);
+	int (*get_reg)(struct charger_device *dev, char *reg, int length);
 };
 
 static inline void *charger_dev_get_drvdata(
@@ -304,5 +307,10 @@ extern int wireless_charger_dev_set_wpc_en(
 	struct charger_device *chg_dev, bool en);
 extern int wireless_charger_dev_set_sleep_en(
 	struct charger_device *chg_dev, bool en);
+
+extern int charger_dev_get_vendor(
+	struct charger_device *charger_dev, char *vendor, int length);
+extern int charger_dev_get_reg(
+	struct charger_device *charger_dev, char *reg, int length);
 
 #endif /*LINUX_POWER_CHARGER_CLASS_H*/

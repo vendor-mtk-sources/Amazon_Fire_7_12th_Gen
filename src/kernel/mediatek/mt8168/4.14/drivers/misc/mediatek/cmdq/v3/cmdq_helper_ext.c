@@ -5241,6 +5241,7 @@ s32 cmdq_helper_mbox_register(struct device *dev)
 	u32 i;
 	s32 chan_id;
 	struct cmdq_client *clt;
+	int thread_cnt;
 
 #ifdef CMDQ_SECURE_PATH_SUPPORT
 	u32 sec_thread[2] = {0};
@@ -5256,8 +5257,14 @@ s32 cmdq_helper_mbox_register(struct device *dev)
 	CMDQ_LOG("sec thread index %u to %u\n", sec_thread[0], sec_thread[1]);
 #endif
 
+	thread_cnt = of_count_phandle_with_args(
+		dev->of_node, "mboxes", "#mbox-cells");
+	CMDQ_MSG("thread count:%d\n", thread_cnt);
+	if (thread_cnt <= 0)
+		thread_cnt = CMDQ_MAX_THREAD_COUNT;
+
 	/* for display we start from thread 0 */
-	for (i = 0; i < CMDQ_MAX_THREAD_COUNT; i++) {
+	for (i = 0; i < thread_cnt; i++) {
 		clt = cmdq_mbox_create(dev, i);
 		if (!clt || IS_ERR(clt)) {
 			CMDQ_LOG("register mbox stop:0x%p idx:%u\n", clt, i);

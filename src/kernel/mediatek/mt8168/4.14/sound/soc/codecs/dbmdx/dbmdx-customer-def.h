@@ -29,6 +29,7 @@
 #define USE_KERNEL_ABOVE_4_17_XX	1		/* snd_soc_component, timer_list */
 #define USE_KERNEL_ABOVE_4_19_10	1		/* wakelock handling */
 #define USE_KERNEL_ABOVE_5_4		1		/* of_dev_node_match, snd_soc_dai_link */
+#define USE_KERNEL_ABOVE_5_10		1		/* asoc_rtd_to_codec, snd_pcm_ops */
 #endif
 
 #define USE_ALSA_API_3_10_XX	0

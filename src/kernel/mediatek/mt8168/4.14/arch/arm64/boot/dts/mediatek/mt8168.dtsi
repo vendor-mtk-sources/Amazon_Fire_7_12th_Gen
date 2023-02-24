@@ -1352,6 +1352,25 @@
 				"MMU",
 				"JOB",
 				"EVENT";
+			operating-points-v2 = <&gpu_mali_opp>;
+			#cooling-cells = <2>;
+		};
+		gpu_mali_opp: opp-table0 {
+			compatible = "operating-points-v2";
+			opp-shared;
+
+			opp00 {
+				opp-hz = /bits/ 64 <800000000>;
+				opp-microvolt = <800000>;
+			};
+			opp01 {
+				opp-hz = /bits/ 64 <560000000>;
+				opp-microvolt = <700000>;
+			};
+			opp02 {
+				opp-hz = /bits/ 64 <450000000>;
+				opp-microvolt = <650000>;
+			};
 		};
 
 		mmsys: syscon@14000000 {

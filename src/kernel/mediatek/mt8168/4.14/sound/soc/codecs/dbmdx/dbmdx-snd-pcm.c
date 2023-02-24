@@ -115,6 +115,8 @@ static struct snd_pcm_hardware dbmdx_pcm_hardware = {
 	.fifo_size =		0,
 };
 
+extern struct dbmdx_private *dbmdx_data;
+
 static DECLARE_WAIT_QUEUE_HEAD(dbmdx_wq);
 
 int pcm_command_in_progress(struct snd_dbmdx_runtime_data *prtd,
@@ -197,7 +199,11 @@ static void dbmdx_pcm_timer(unsigned long _substream)
 #endif /* TIMER_LIST_PTR */
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
+#ifdef USE_KERNEL_ABOVE_5_10
+	struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
+#else
 	struct snd_soc_component *component = rtd->codec_dai->component;
+#endif
 #else
 	struct snd_soc_codec *codec = rtd->codec_dai->codec;
 #endif /* SND_SOC_COMPONENT */
@@ -236,8 +242,15 @@ static void dbmdx_pcm_timer(unsigned long _substream)
 
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static int dbmdx_pcm_hw_params(struct snd_soc_component *component,
+				struct snd_pcm_substream *substream,
+			       struct snd_pcm_hw_params *hw_params)
+#else
 static int dbmdx_pcm_hw_params(struct snd_pcm_substream *substream,
 			       struct snd_pcm_hw_params *hw_params)
+#endif
+
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 
@@ -254,7 +267,11 @@ static int dbmdx_pcm_hw_params(struct snd_pcm_substream *substream,
 	return 0;
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static int dbmdx_pcm_prepare(struct snd_soc_component *component, struct snd_pcm_substream *substream)
+#else
 static int dbmdx_pcm_prepare(struct snd_pcm_substream *substream)
+#endif
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	size_t	buf_bytes;
@@ -410,7 +427,11 @@ static void  dbmdx_pcm_start_capture_work(struct work_struct *work)
 	struct snd_pcm_substream *substream = prtd->substream;
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
+#ifdef USE_KERNEL_ABOVE_5_10
+	struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
+#else
 	struct snd_soc_component *component = rtd->codec_dai->component;
+#endif
 #else
 	struct snd_soc_codec *codec = rtd->codec_dai->codec;
 #endif /* SND_SOC_COMPONENT */
@@ -452,7 +473,11 @@ static void dbmdx_pcm_stop_capture_work(struct work_struct *work)
 	struct snd_pcm_substream *substream = prtd->substream;
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
+#ifdef USE_KERNEL_ABOVE_5_10
+	struct snd_soc_component *component = asoc_rtd_to_codec(rtd, 0)->component;
+#else
 	struct snd_soc_component *component = rtd->codec_dai->component;
+#endif
 #else
 	struct snd_soc_codec *codec = rtd->codec_dai->codec;
 #endif /* SND_SOC_COMPONENT */
@@ -486,23 +511,38 @@ out:
 	pcm_command_in_progress(prtd, 0);
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static int dbmdx_pcm_open(struct snd_soc_component *component, struct snd_pcm_substream *substream)
+#else
 static int dbmdx_pcm_open(struct snd_pcm_substream *substream)
+#endif
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
+	struct snd_dbmdx_runtime_data *prtd;
+#ifndef USE_KERNEL_ABOVE_5_10
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
 	struct snd_soc_component *component = rtd->codec_dai->component;
-	struct dbmdx_private *p = dev_get_drvdata(component->dev);
 #else
 	struct snd_soc_codec *codec = rtd->codec_dai->codec;
-	struct dbmdx_private *p = dev_get_drvdata(codec->dev);
 #endif /* SND_SOC_COMPONENT */
+#endif
+#if defined(SOC_CONTROLS_FOR_DBMDX_CODEC_ONLY)
+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
+	struct dbmdx_private *p = snd_soc_codec_get_drvdata(codec);
+#else
+	struct dbmdx_private *p = dbmdx_data;
+#endif /* !USE_KERNEL_ABOVE_5_10 */
 
-	struct snd_dbmdx_runtime_data *prtd;
 	struct timer_list *timer;
 	int ret;
 
 	pr_debug("%s\n", __func__);
+
+	if (!p->device_ready) {
+		pr_err("%s: device not ready\n", __func__);
+		return -EFAULT;
+	}
 
 #ifdef SND_SOC_COMPONENT
 	if (dbmdx_component_lock(component)) {
@@ -594,14 +634,29 @@ out:
 	return ret;
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static int dbmdx_pcm_trigger(struct snd_soc_component *component, struct snd_pcm_substream *substream, int cmd)
+#else
 static int dbmdx_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
+#endif
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_dbmdx_runtime_data *prtd;
+#if defined(SOC_CONTROLS_FOR_DBMDX_CODEC_ONLY)
+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
+	struct dbmdx_private *p = snd_soc_codec_get_drvdata(codec);
+#else
+	struct dbmdx_private *p = dbmdx_data;
+#endif
 	int ret = 0;
 	int num_of_active_cmds;
 
 	pr_debug("%s: cmd=%d\n", __func__, cmd);
+
+	if (!p->device_ready) {
+		pr_err("%s: device not ready\n", __func__);
+		return -EFAULT;
+	}
 
 	if (runtime == NULL) {
 		pr_err("%s: runtime NULL ptr\n", __func__);
@@ -653,10 +708,15 @@ static int dbmdx_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
 	return ret;
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static int dbmdx_pcm_close(struct snd_soc_component *component, struct snd_pcm_substream *substream)
+#else
 static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
+#endif
 {
 	struct snd_pcm_runtime *runtime = substream->runtime;
 	struct snd_dbmdx_runtime_data *prtd = runtime->private_data;
+#ifndef USE_KERNEL_ABOVE_5_10
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
 	struct snd_soc_component *component = rtd->codec_dai->component;
@@ -665,6 +725,8 @@ static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
 	struct snd_soc_codec *codec = rtd->codec_dai->codec;
 	struct dbmdx_private *p = dev_get_drvdata(codec->dev);
 #endif /* SND_SOC_COMPONENT */
+#endif /* !USE_KERNEL_ABOVE_5_10 */
+
 #ifndef TIMER_LIST_PTR
 	struct timer_list *timer = prtd->timer;
 #endif /* !TIMER_LIST_PTR */
@@ -711,7 +773,19 @@ static int dbmdx_pcm_close(struct snd_pcm_substream *substream)
 	return 0;
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+int dbmdx_pcm_ioctl(struct snd_soc_component *component, struct snd_pcm_substream *substream,
+		      unsigned int cmd, void *arg)
+{
+	return snd_pcm_lib_ioctl(substream, cmd, arg);
+}
+#endif
+
+#ifdef USE_KERNEL_ABOVE_5_10
+static snd_pcm_uframes_t dbmdx_pcm_pointer(struct snd_soc_component *component, struct snd_pcm_substream *substream)
+#else
 static snd_pcm_uframes_t dbmdx_pcm_pointer(struct snd_pcm_substream *substream)
+#endif
 {
 	u32 pos;
 
@@ -722,6 +796,7 @@ static snd_pcm_uframes_t dbmdx_pcm_pointer(struct snd_pcm_substream *substream)
 	return bytes_to_frames(substream->runtime, pos);
 }
 
+#ifndef USE_KERNEL_ABOVE_5_10
 static struct snd_pcm_ops dbmdx_pcm_ops = {
 	.open		= dbmdx_pcm_open,
 	.close		= dbmdx_pcm_close,
@@ -731,6 +806,7 @@ static struct snd_pcm_ops dbmdx_pcm_ops = {
 	.trigger	= dbmdx_pcm_trigger,
 	.pointer	= dbmdx_pcm_pointer,
 };
+#endif
 
 static int dbmdx_pcm_preallocate_dma_buffer(struct snd_pcm *pcm, int stream)
 {
@@ -814,7 +890,11 @@ static int dbmdx_pcm_remove(struct snd_soc_platform *pt)
 #endif
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static int dbmdx_pcm_construct(struct snd_soc_component *component, struct snd_soc_pcm_runtime *runtime)
+#else
 static int dbmdx_pcm_new(struct snd_soc_pcm_runtime *runtime)
+#endif
 {
 	struct snd_pcm *pcm;
 	int ret = 0;
@@ -840,7 +920,11 @@ out:
 	return ret;
 }
 
+#ifdef USE_KERNEL_ABOVE_5_10
+static void dbmdx_pcm_destruct(struct snd_soc_component *component, struct snd_pcm *pcm)
+#else
 static void dbmdx_pcm_free(struct snd_pcm *pcm)
+#endif
 {
 	struct snd_pcm_substream *substream;
 	struct snd_dma_buffer *buf;
@@ -872,9 +956,21 @@ static struct snd_soc_platform_driver dbmdx_soc_platform = {
 #endif /* SND_SOC_COMPONENT */
 	.probe		= &dbmdx_pcm_probe,
 	.remove		= &dbmdx_pcm_remove,
+#ifdef USE_KERNEL_ABOVE_5_10
+	.open		= dbmdx_pcm_open,
+	.close		= dbmdx_pcm_close,
+	.ioctl			= dbmdx_pcm_ioctl,
+	.hw_params	= dbmdx_pcm_hw_params,
+	.prepare	= dbmdx_pcm_prepare,
+	.trigger	= dbmdx_pcm_trigger,
+	.pointer	= dbmdx_pcm_pointer,
+	.pcm_construct	= dbmdx_pcm_construct,
+	.pcm_destruct		= dbmdx_pcm_destruct,
+#else
 	.ops		= &dbmdx_pcm_ops,
 	.pcm_new	= dbmdx_pcm_new,
 	.pcm_free	= dbmdx_pcm_free,
+#endif
 };
 
 static int dbmdx_pcm_platform_probe(struct platform_device *pdev)

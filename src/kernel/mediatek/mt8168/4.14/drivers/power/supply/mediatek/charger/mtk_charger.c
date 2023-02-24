@@ -3378,6 +3378,36 @@ static ssize_t ibus_show(struct device *dev,
 }
 static const DEVICE_ATTR_RO(ibus);
 
+static ssize_t vendor_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct charger_manager *chg_dev = dev->driver_data;
+	char vendor[24] = {0};
+	int ret;
+
+	ret = charger_dev_get_vendor(chg_dev->chg1_dev, vendor, 24);
+	if (ret < 0)
+		return scnprintf(buf, PAGE_SIZE, "-1\n");
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n", vendor);
+}
+static const DEVICE_ATTR_RO(vendor);
+
+static ssize_t reg_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct charger_manager *chg_dev = dev->driver_data;
+	char reg[64] = {0};
+	int ret;
+
+	ret = charger_dev_get_reg(chg_dev->chg1_dev, reg, 64);
+	if (ret < 0)
+		return scnprintf(buf, PAGE_SIZE, "-1\n");
+
+	return scnprintf(buf, PAGE_SIZE, "%s\n", reg);
+}
+static const DEVICE_ATTR_RO(reg);
+
 static ssize_t show_bat_eoc_protect_reset_time(struct device *dev,
 	struct device_attribute *attr, char *buf)
 {
@@ -3480,6 +3510,8 @@ static int mtk_charger_setup_files(struct platform_device *pdev)
 	device_create_file(&(pdev->dev), &dev_attr_iusb_setting);
 	device_create_file(&(pdev->dev), &dev_attr_bcm_flag);
 	device_create_file(&(pdev->dev), &dev_attr_bat_eoc_protect_reset_time);
+	device_create_file(&(pdev->dev), &dev_attr_vendor);
+	device_create_file(&(pdev->dev), &dev_attr_reg);
 
 _out:
 	return ret;

@@ -79,7 +79,7 @@
 #define MAX_RETRIES_TO_WRITE_TOBUF		200
 #define MAX_AMODEL_SIZE				(256 * 1024)
 
-#define DRIVER_VERSION				"4.1.20220128"
+#define DRIVER_VERSION				"4.1.20220412"
 
 #define DBMDX_AUDIO_MODE_PCM			0
 #define DBMDX_AUDIO_MODE_MU_LAW			1
@@ -2289,7 +2289,7 @@ static int dbmdx_set_pcm_streaming_mode(struct dbmdx_private *p, u16 mode)
 }
 
 static int dbmdx_calc_amodel_checksum(struct dbmdx_private *p,
-				      const char *amodel,
+				      const char *amodel_buf,
 				      unsigned long len, unsigned long *chksum)
 {
 	unsigned long sum = 0;
@@ -2297,9 +2297,12 @@ static int dbmdx_calc_amodel_checksum(struct dbmdx_private *p,
 	unsigned long i;
 	u32 pos = 0, chunk_len;
 	int err = -1;
+	char *amodel;
 
 	if (len == 0 || len > MAX_AMODEL_SIZE)
 		return -EINVAL;
+
+	amodel = (char *) amodel_buf;
 	if (amodel == NULL)
 		return -EINVAL;
 
@@ -2307,7 +2310,7 @@ static int dbmdx_calc_amodel_checksum(struct dbmdx_private *p,
 	*chksum = 0;
 
 	while (pos < len) {
-		val = *(u16 *)(&amodel[pos]);
+		val = *(u16 *)(amodel+pos);
 		pos += 2;
 		if (pos >= len) {
 			dev_dbg(p->dev, "%s:%d %u", __func__,
@@ -2318,7 +2321,7 @@ static int dbmdx_calc_amodel_checksum(struct dbmdx_private *p,
 		if (val == 0x025a) {
 			sum += 0x5a + 0x02;
 
-			chunk_len = *(u32 *)(&amodel[pos]);
+			chunk_len = *(u32 *)(amodel+pos);
 			pos += 4;
 			if (pos >= len) {
 				dev_dbg(p->dev, "%s:%d %u", __func__,
@@ -2328,7 +2331,7 @@ static int dbmdx_calc_amodel_checksum(struct dbmdx_private *p,
 
 			sum += chunk_len;
 
-			sum += *(u32 *)(&amodel[pos]);
+			sum += *(u32 *)(amodel+pos);
 			pos += 4;
 
 			if ((pos + (chunk_len * 2)) > len) {
@@ -2338,7 +2341,7 @@ static int dbmdx_calc_amodel_checksum(struct dbmdx_private *p,
 			}
 
 			for (i = 0; i < chunk_len; i++) {
-				sum += *(u16 *)(&amodel[pos]);
+				sum += *(u16 *)(amodel+pos);
 				pos += 2;
 			}
 		} else
@@ -2780,7 +2783,7 @@ static ssize_t dbmdx_acoustic_model_build_from_svt_multichunk_file(
 	head[10] = ((gram_addr) >> 16) & 0xff;
 	head[11] = ((gram_addr) >> 24) & 0xff;
 
-	if (head_size == 0 || head_size > MAX_AMODEL_SIZE) {
+	if (head_size == 0 || head_size > MAX_AMODEL_SIZE || amodel_buf == NULL) {
 		dev_err(p->dev, "%s: head size out of range\n", __func__);
 		ret = -EINVAL;
 		goto out;
@@ -2790,7 +2793,7 @@ static ssize_t dbmdx_acoustic_model_build_from_svt_multichunk_file(
 
 	target_pos += head_size;
 
-	if (gram_size == 0 || gram_size > MAX_AMODEL_SIZE) {
+	if (gram_size == 0 || gram_size > MAX_AMODEL_SIZE || amodel_buf == NULL || file_data == NULL) {
 		dev_err(p->dev, "%s: gram size out of range\n", __func__);
 		ret = -EINVAL;
 		goto out;
@@ -2813,11 +2816,16 @@ static ssize_t dbmdx_acoustic_model_build_from_svt_multichunk_file(
 	head[10] = ((net_addr) >> 16) & 0xff;
 	head[11] = ((net_addr) >> 24) & 0xff;
 
+	if (head_size == 0 || head_size > MAX_AMODEL_SIZE || amodel_buf == NULL) {
+		ret = -EINVAL;
+		goto out;
+	}
+
 	memcpy(amodel_buf + target_pos, head, head_size);
 
 	target_pos += head_size;
 
-	if (net_size == 0 || net_size > MAX_AMODEL_SIZE) {
+	if (net_size == 0 || net_size > MAX_AMODEL_SIZE || amodel_buf == NULL || file_data == NULL) {
 		dev_err(p->dev, "%s: net size out of range\n", __func__);
 		ret = -EINVAL;
 		goto out;
@@ -2830,7 +2838,7 @@ static ssize_t dbmdx_acoustic_model_build_from_svt_multichunk_file(
 	amodel_chunks_size[0] = gram_size;
 	amodel_chunks_size[1] = net_size;
 
-	if (target_pos == 0 || target_pos > MAX_AMODEL_SIZE) {
+	if (target_pos == 0 || target_pos > MAX_AMODEL_SIZE || amodel_buf == NULL) {
 		dev_err(p->dev, "%s: target pos out of range\n", __func__);
 		ret = -EINVAL;
 		goto out;
@@ -6576,7 +6584,7 @@ static int dbmdx_va_ve_start_usecase(struct dbmdx_private *p,
 	}
 
 	if (usecase->va_start_cmd == 1) {
-		dev_dbg(p->dev, "force set usecase to release wakelock\n");
+		dev_info(p->dev, "force set usecase to release wakelock\n");
 		/* we are in LPM mode, release wakelock! */
 		p->chip->transport_enable(p, false);
 	}
@@ -13202,6 +13210,8 @@ int dbmdx_debug_read(u8 *src, u8 *dest, int size)
 			goto out_unlock;
 		}
 		memcpy(dest, p->read_audio_buf+2, nr_samples*2);
+
+		p->chip->transport_enable(p, false);
 		p->unlock(p);
 
 		dest += nr_samples*2;
@@ -13432,6 +13442,8 @@ int dbmdx_debug_write(u8 *dest, u8 *src, int size)
 			dev_err(p->dev, "%s: send buff failed, %d bytes to send, res(%d)\n", __func__, bytes_to_write, ret);
 			goto out_unlock;
 		}
+
+		p->chip->transport_enable(p, false);
 		p->unlock(p);
 
 		src += bytes_to_write;
@@ -19198,7 +19210,11 @@ static void dbmdx_pcm_streaming_work_mod_0(struct work_struct *work)
 
 	rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
+#ifdef USE_KERNEL_ABOVE_5_10
+	component = asoc_rtd_to_codec(rtd, 0)->component;
+#else
 	component = rtd->codec_dai->component;
+#endif
 #else
 	codec = rtd->codec_dai->codec;
 #endif /* SND_SOC_COMPONENT */
@@ -19585,7 +19601,11 @@ static void dbmdx_pcm_streaming_work_mod_1(struct work_struct *work)
 
 	rtd = substream->private_data;
 #ifdef SND_SOC_COMPONENT
+#ifdef USE_KERNEL_ABOVE_5_10
+	component = asoc_rtd_to_codec(rtd, 0)->component;
+#else
 	component = rtd->codec_dai->component;
+#endif
 #else
 	codec = rtd->codec_dai->codec;
 #endif /* SND_SOC_COMPONENT */

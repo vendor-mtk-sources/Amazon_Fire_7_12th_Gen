@@ -114,7 +114,7 @@
 #include <mali_kbase_as_fault_debugfs.h>
 #include <device/mali_kbase_device.h>
 #include <context/mali_kbase_context.h>
-
+#include <mtk_gpufreq.h>
 #include <mali_kbase_caps.h>
 
 /* GPU IRQ Tags */
@@ -4167,8 +4167,10 @@ int kbase_device_debugfs_init(struct kbase_device *kbdev)
 
 #ifdef CONFIG_MALI_DEVFREQ
 #ifdef CONFIG_DEVFREQ_THERMAL
+#ifdef IPA_ENABLE
 	if (kbdev->devfreq)
 		kbase_ipa_debugfs_init(kbdev);
+#endif
 #endif /* CONFIG_DEVFREQ_THERMAL */
 #endif /* CONFIG_MALI_DEVFREQ */
 
@@ -4387,7 +4389,7 @@ int kbase_backend_devfreq_init(struct kbase_device *kbdev)
 	int err = kbase_devfreq_init(kbdev);
 
 	if (err)
-		dev_err(kbdev->dev, "Continuing without devfreq\n");
+		dev_err(kbdev->dev, "Continuing without devfreq [%d]\n", err);
 #endif /* CONFIG_MALI_DEVFREQ */
 	return 0;
 }

@@ -928,6 +928,45 @@ static void bq2560x_dump_regs(struct bq2560x *bq)
 	pr_info("%s\n", buf);
 }
 
+static int bq2560x_get_registers(struct charger_device *chg_dev, char *buf, int length)
+{
+	struct bq2560x *bq = dev_get_drvdata(&chg_dev->dev);
+	u8 addr;
+	u8 val;
+	int len;
+	int idx = 0;
+	int ret;
+	char tmpbuf[80] = {0};
+
+	for (addr = 0x0; addr <= 0x0a; addr++) {
+		ret = bq2560x_read_byte(bq, addr, &val);
+		if (ret == 0) {
+			len = snprintf(&tmpbuf[idx], length - idx, "%.1x:%.2x ", addr, val);
+			idx += len;
+		}
+	}
+
+	return snprintf(buf, length, "%s", tmpbuf);
+}
+
+static int bq2560x_get_vendor(struct charger_device *chg_dev, char *buf, int length)
+{
+	struct bq2560x *bq = dev_get_drvdata(&chg_dev->dev);
+	int idx = 0;
+
+	if (bq->part_no == PN_VALUE_BQ25601_SGM41511) {
+		if (bq->reg0b_bit2 == BIT2_VALUE_BQ25601)
+			idx = snprintf(buf, length, "%s", "BQ25601\n");
+		else
+			idx = snprintf(buf, length, "%s", "SGM41511\n");
+	} else if (bq->part_no == PN_VALUE_ANSY6974) {
+		idx = snprintf(buf, length, "%s", "AN_SY6974\n");
+	} else {
+		idx = snprintf(buf, length, "%s", "ERROR\n");
+	}
+	return idx;
+}
+
 static ssize_t
 bq2560x_show_registers(struct device *dev, struct device_attribute *attr,
 		       char *buf)
@@ -1372,6 +1411,10 @@ static struct charger_ops bq2560x_chg_ops = {
 
 	/* ADC */
 	.get_tchg_adc = NULL,
+
+	/*vendor&reg*/
+	.get_vendor = bq2560x_get_vendor,
+	.get_reg = bq2560x_get_registers,
 };
 
 static struct of_device_id bq2560x_charger_match_table[] = {

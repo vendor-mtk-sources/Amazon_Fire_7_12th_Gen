@@ -66,6 +66,11 @@ extern void mt_gpufreq_disable_CG(void);
 extern void mt_gpufreq_enable_MTCMOS(void);
 extern void mt_gpufreq_disable_MTCMOS(void);
 
+
+extern void (*mtk_devfreq_set_cur_freq_fp)(unsigned long cur_freq);
+extern void mt_gpufreq_devfreq_target(unsigned int limited_freq);
+
+
 #ifdef CONFIG_MTK_RAM_CONSOLE
 extern void aee_rr_rec_gpu_dvfs_vgpu(u8 val);
 extern void aee_rr_rec_gpu_dvfs_oppidx(u8 val);

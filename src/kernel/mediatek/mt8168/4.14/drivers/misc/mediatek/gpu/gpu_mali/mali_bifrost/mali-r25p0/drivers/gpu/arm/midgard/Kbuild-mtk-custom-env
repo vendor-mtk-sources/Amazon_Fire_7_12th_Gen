@@ -14,11 +14,16 @@ $(info mtk-Kbuild CONFIG_MALI_PLATFORM_THIRDPARTY_NAME := $(CONFIG_MALI_PLATFORM
 
 CONFIG_MALI_DEBUG := y
 
-ccflags-y += -I-I$(srctree)/include
+ccflags-y += -I$(srctree)/include
+ccflags-y += -I$(srctree)/drivers/devfreq/
 ccflags-y += -I$(srctree)/drivers/staging/android
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(CONFIG_MTK_PLATFORM)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/ged/include
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/gpu/gpu_bm
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_mali/mali_bifrost/mali-r25p0/drivers/gpu/arm/midgard/backend/gpu
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_mali/mali_bifrost/mali-r25p0/drivers/gpu/arm/midgard/include
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_mali/mali_bifrost/mali-r25p0/drivers/gpu/arm/midgard/platform/$(MTK_PLATFORM)
+ccflags-y += -I$(srctree)/drivers/gpu/mediatek/gpu_mali/mali_bifrost/mali-r25p0/drivers/gpu/arm/midgard/debug
 
 ccflags-y += -DCONFIG_MALI_MIDGARD_DVFS
 
@@ -29,6 +34,9 @@ endif
 ccflags-y += -DCONFIG_PROC_FS
 ccflags-y += -DENABLE_MTK_MEMINFO
 ccflags-$(CONFIG_MTK_GPU_COMMON_DVFS_SUPPORT) += -DENABLE_COMMON_DVFS
+CONFIG_MALI_DEVFREQ:= y
+ccflags-y += -DCONFIG_MALI_DEVFREQ
+#ccflags-y += -DCONFIG_DEVFREQ_THERMAL
 
 ifneq (, $(findstring $(CONFIG_MTK_PLATFORM), "mt6785"))
 ccflags-y += -DMTK_GPU_BM_2

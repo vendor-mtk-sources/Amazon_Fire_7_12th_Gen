@@ -117,6 +117,16 @@ config CHARGER_BQ25601
 	  TI BQ25601 driver.
 	  It depends on config  MTK_CHARGER.
 
+config CHARGER_SGM4154X
+	bool "Charger Driver for SG Micro SGM4154X Charger IC"
+	default n
+	depends on MTK_CHARGER
+	help
+	  Say Yes to enable
+	  Say No to disable
+	  SG Micro SGM4154X driver.
+	  It depends on config MTK_CHARGER.
+
 config SW_AICL_SUPPORT
 	bool "Charger Driver for SW AICL SUPPORT"
 	default n

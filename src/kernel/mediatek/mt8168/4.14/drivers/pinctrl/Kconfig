@@ -148,10 +148,10 @@ config PINCTRL_FALCON
 	depends on SOC_FALCON
 	depends on PINCTRL_LANTIQ
 
-config PINCTRL_GEMINI
+config PINCTRL_abc123
 	bool
-	depends on ARCH_GEMINI
-	default ARCH_GEMINI
+	depends on ARCH_abc123
+	default ARCH_abc123
 	select PINMUX
 	select MFD_SYSCON
 

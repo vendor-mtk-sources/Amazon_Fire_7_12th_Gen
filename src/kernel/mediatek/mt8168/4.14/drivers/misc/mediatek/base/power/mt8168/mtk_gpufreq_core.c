@@ -76,6 +76,7 @@ static unsigned int __mt_gpufreq_get_cur_volt(void);
 static unsigned int __mt_gpufreq_get_cur_freq(void);
 static unsigned int __mt_gpufreq_get_cur_vsram_volt(void);
 static int __mt_gpufreq_get_opp_idx_by_volt(unsigned int volt);
+int __mt_gpufreq_get_opp_idx_by_freq(unsigned int volt);
 static unsigned int __mt_gpufreq_get_vsram_by_target_volt(unsigned int volt);
 static unsigned int __mt_gpufreq_get_limited_freq_by_power(unsigned int
 							   limited_power);
@@ -123,6 +124,9 @@ static void __mt_gpufreq_vgpu_volt_switch(enum g_volt_switch_enum switch_way,
 					  unsigned int volt_old,
 					  unsigned int volt_new);
 
+
+void (*mtk_devfreq_set_cur_freq_fp)(unsigned long) = NULL;
+EXPORT_SYMBOL(mtk_devfreq_set_cur_freq_fp);
 /**
  * ===============================================
  * SECTION : Local variables definition
@@ -935,6 +939,23 @@ void mt_gpufreq_low_batt_callback(LOW_BATTERY_LEVEL low_battery_level)
 #endif	/* ifdef MT_GPUFREQ_LOW_BATT_VOLT_PROTECT */
 
 /*
+ * Thermal may limit OPP table index,
+ * SVS/PTP may change the voltage for current OPP.
+ */
+void mt_gpufreq_devfreq_target(unsigned int limited_freq)
+{
+	int limited_idx;
+
+	limited_idx = mt_gpufreq_get_opp_idx_by_freq(limited_freq);
+
+	gpufreq_pr_debug("%s, limited_idx = %d\n", __func__, limited_idx);
+
+	mt_gpufreq_target(limited_idx, true);
+}
+EXPORT_SYMBOL(mt_gpufreq_devfreq_target);
+
+
+/*
  * API : set limited OPP table index for Thermal protection
  */
 void mt_gpufreq_thermal_protect(unsigned int limited_power)
@@ -1060,6 +1081,7 @@ static int mt_gpufreq_opp_dump_proc_show(struct seq_file *m, void *v)
 	for (i = g_segment_max_opp_idx; i < g_max_opp_idx_num; i++) {
 		seq_printf(m, "[%d] ", i - g_segment_max_opp_idx);
 		seq_printf(m, "freq = %d, ", g_opp_table[i].gpufreq_khz);
+
 		if (g_enable_aging_test) {
 			if (g_opp_table[i].gpufreq_volt <= 75000) {
 				seq_printf(m, "volt = %d, ",
@@ -1730,6 +1752,8 @@ static void __mt_gpufreq_set(unsigned int idx_old, unsigned int idx_new,
 	g_cur_opp_freq = freq_new;
 	g_cur_opp_volt = volt_new;
 	g_cur_opp_vsram_volt = vsram_volt_new;
+	if (mtk_devfreq_set_cur_freq_fp)
+		mtk_devfreq_set_cur_freq_fp(freq_new);
 
 	gpufreq_pr_debug("@%s:donefreq: %d->%d, volt: %d->%d,ram_volt: %d->%d\n",
 	     __func__, freq_old, __mt_gpufreq_get_cur_freq(),
@@ -2304,6 +2328,23 @@ static int __mt_gpufreq_get_opp_idx_by_volt(unsigned int volt)
 
 EXIT:
 	return i + 1;
+}
+
+/* API : get idx on opp table */
+int mt_gpufreq_get_opp_idx_by_freq(unsigned int freq)
+{
+	int i = g_max_opp_idx_num - 1;
+
+	if (!g_opp_table)
+		return 0;
+
+	while (i >= 0) {
+		if (g_opp_table[i--].gpufreq_khz >= freq)
+			goto EXIT;
+	}
+
+EXIT:
+	return (i+1);
 }
 
 /*

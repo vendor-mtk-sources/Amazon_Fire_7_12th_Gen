@@ -8266,8 +8266,7 @@ static signed int ISP_DONE_Buf_Time(enum eISPIrq irqT, union CQ_RTBC_FBC *pFbc,
 
 					break;
 				}
-				if (1) {
-			/* (IspInfo.DebugMask & ISP_DBG_INT_2) { */
+				if (IspInfo.DebugMask & ISP_DBG_INT_2) {
 					for (m = 0;
 						m < ISP_RT_BUF_SIZE;) {
 						log_err("dma_%d,cur_%d,bFilled_%d != EMPTY(%d %d %d	%d)\n",

@@ -237,6 +237,8 @@ struct g_pmic_info {
  * External functions declaration
  **************************************************/
 extern bool mtk_get_gpu_loading(unsigned int *pLoading);
+extern int mt_gpufreq_get_opp_idx_by_freq(unsigned int freq);
+
 extern u32 get_devinfo_with_index(u32 index);
 
 #endif /* _MT_GPUFREQ_CORE_H_ */
